@@ -87,8 +87,8 @@ bool Game::InitSDL()
 bool Game::LoadShaders()
 {
     mShader = new Shader();
-    if (!mShader->Load(ShaderPath + "Basic.vert.glsl",
-                       ShaderPath + "Basic.frag.glsl"))
+    if (!mShader->Load(ShaderPath + "BasicVert.glsl",
+                       ShaderPath + "BasicFrag.glsl"))
     {
         return false;
     }
