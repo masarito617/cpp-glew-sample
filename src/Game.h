@@ -49,7 +49,7 @@ private:
     //const std::string AssetsPath = "Assets\\"; // Win + VisualStudio
 
     // シェーダーパス
-    const std::string ShaderPath = "../Shaders/"; // Mac + CLion
+    const std::string ShaderPath = "../src/Shaders/"; // Mac + CLion
 
 public:
     // getter, setter
