@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "../Commons/Vector2.h"
+#include "../Commons/Math.h"
 
 // アクタクラス
 // *各アクタはこのクラスを継承する
@@ -23,11 +24,16 @@ public:
     void AddComponent(class Component* component);    // コンポーネント追加処理
     void RemoveComponent(class Component* component); // コンポーネント削除処理
 
+    void CalculateWouldTransform(); // ワールド座標計算処理
+
 private:
     State mState;      // 状態
     Vector2 mPosition; // 位置
     float mScale;      // 大きさ
     float mRotation;   // 回転
+    Matrix4 mWorldTransform;         // ワールド変換座標
+    bool mRecalculateWorldTransform; // 再計算フラグ
+
     std::vector<class Component*> mComponents; // 保有するコンポーネント
     class Game* mGame; // ゲームクラス
 
@@ -35,11 +41,14 @@ public:
     // Getter, Setter
     State GetState() const { return mState; }
     void SetState(const State state) { mState = state; }
-    const Vector2& GetPosition() const { return mPosition; }
-    void SetPosition(const Vector2& pos) { mPosition = pos; }
-    float GetScale() const { return mScale; }
-    void SetScale(const float scale) { mScale = scale; }
-    float GetRotation() const { return mRotation; }
-    void SetRotation(const float rotation) { mRotation = rotation; }
     class Game* GetGame() const { return mGame; }
+    // 座標の設定は再計算させる
+    const Vector2& GetPosition() const { return mPosition; }
+    void SetPosition(const Vector2& pos) { mPosition = pos; mRecalculateWorldTransform = true; }
+    float GetScale() const { return mScale; }
+    void SetScale(const float scale) { mScale = scale; mRecalculateWorldTransform = true; }
+    float GetRotation() const { return mRotation; }
+    void SetRotation(const float rotation) { mRotation = rotation; mRecalculateWorldTransform = true; }
+    const Matrix4& GetWorldTransform() const { return mWorldTransform; }
+
 };

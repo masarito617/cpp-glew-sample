@@ -10,6 +10,7 @@ Actor::Actor(Game* game)
 ,mScale(1.0f)
 ,mRotation(0.0f)
 ,mGame(game)
+,mRecalculateWorldTransform(true)
 {
     // アクタ追加
     mGame->AddActor(this);
@@ -31,6 +32,7 @@ void Actor::Update(float deltaTime)
 {
     if (mState == EActive)
     {
+        CalculateWouldTransform();
         UpdateComponents(deltaTime);
         UpdateActor(deltaTime);
     }
@@ -73,5 +75,26 @@ void Actor::RemoveComponent(Component* component)
     if (iter != mComponents.end())
     {
         mComponents.erase(iter);
+    }
+}
+
+// ワールド変換座標計算処理
+void Actor::CalculateWouldTransform()
+{
+    // ワールド変換座標を再計算する
+    if (mRecalculateWorldTransform)
+    {
+        // 拡大縮小 -> 回転 -> 平行移動
+        // を逆の順番で乗算する。
+        // 2DのためZは固定
+        mRecalculateWorldTransform = false;
+        mWorldTransform = Matrix4::CreateTranslation(mPosition.x, mPosition.y, 0.0f);
+        mWorldTransform *= Matrix4::CreateRotationZ(mRotation);
+        mWorldTransform *= Matrix4::CreateScale(mScale, mScale, 1.0f);
+        // TODO ログ出力
+        Matrix4::CreateScale(mScale, mScale, 1.0f).PrintMatrix();
+        Matrix4::CreateRotationZ(mRotation).PrintMatrix();
+        Matrix4::CreateTranslation(mPosition.x, mPosition.y, 0.0f).PrintMatrix();
+        mWorldTransform.PrintMatrix();
     }
 }

@@ -2,7 +2,6 @@
 #include "GL/glew.h"
 #include "SDL_image.h"
 #include "Actors/Actor.h"
-#include "Actors/Ship.h"
 #include "Components/SpriteComponent.h"
 #include "Commons/VertexArray.h"
 #include "Commons/Shader.h"
@@ -93,7 +92,11 @@ bool Game::LoadShaders()
         return false;
     }
     mShader->SetActive();
-    // TODO 座標変換
+
+    // ビュー射影座標を設定
+    Matrix4 viewProjection = Matrix4::CreateSimpleViewProjection(ScreenWidth, ScreenHeight);
+    mShader->SetMatrixUniform(mShader->UNIFORM_VIEW_PROJECTION_NAME, viewProjection);
+    viewProjection.PrintMatrix();
     return true;
 }
 
@@ -118,9 +121,12 @@ void Game::CreateSpriteVertices()
 // ゲームループ処理
 void Game::RunLoop()
 {
-    // TODO アクタの作成
+    // アクタの作成
     auto* actor = new Actor(this);
-    //mShip->SetPosition(Vector2(ScreenWidth / 2, ScreenHeight - 200.0f));
+    actor->SetScale(300.0f);
+    actor->SetRotation(Math::ToRadians(30.0f)); // Z軸の方向より、逆方向に回転するため注意
+    actor->SetPosition(Vector2(50.0f, -100.0f));
+
     new SpriteComponent(actor);
 
     while (mIsRunning)

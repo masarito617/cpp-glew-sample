@@ -20,7 +20,10 @@ SpriteComponent::~SpriteComponent()
 
 void SpriteComponent::Draw(Shader* shader)
 {
-    // TODO 座標変換も行う
+    // アクタのワールド変換座標を設定
+    Matrix4 world = mActor->GetWorldTransform();
+    shader->SetMatrixUniform(shader->UNIFORM_WOULD_TRANSFORM_NAME, world);
+
     // 設定されたシェーダを描画
     glDrawElements(
         GL_TRIANGLES,   // 描画するポリゴンの種類

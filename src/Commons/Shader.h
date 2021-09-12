@@ -17,6 +17,13 @@ public:
 
     void SetActive();
 
+    // Uniformへの設定処理
+    void SetMatrixUniform(const char* name, const Matrix4& matrix);
+
+    // Uniform名
+    static const char* UNIFORM_VIEW_PROJECTION_NAME;
+    static const char* UNIFORM_WOULD_TRANSFORM_NAME;
+
 private:
     // コンパイル処理
     bool CompileShader(const std::string& fileName,
