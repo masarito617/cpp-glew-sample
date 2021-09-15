@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <string>
 #include <vector>
+#include <unordered_map>
 
 // ゲーム管理クラス
 // *ゲーム全体の流れ、アクタ生成、テクスチャ読込を行う
@@ -20,6 +21,8 @@ public:
     void AddSprite(class SpriteComponent* sprite);    // 描画中のスプライトを追加
     void RemoveSprite(class SpriteComponent* sprite); // 描画中のスプライトを削除
 
+    class Texture* GetTexture(const std::string& filePath); // テクスチャ取得処理
+
     constexpr static const float ScreenWidth  = 1024.0f; // スクリーン横幅
     constexpr static const float ScreenHeight = 768.0f;  // スクリーン縦幅
 
@@ -34,6 +37,7 @@ private:
     std::vector<class Actor*> mActors;            // アクタリスト
     std::vector<class Actor*> mPendingActors;     // 待機中のアクタリスト
     std::vector<class SpriteComponent*> mSprites; // 描画中のスプライトリスト
+    std::unordered_map<std::string, class Texture*> mCachedTextures; // キャッシュ済テクスチャリスト
 
     class Shader* mShader;        // シェーダ
     class VertexArray* mVertices; // 頂点配列

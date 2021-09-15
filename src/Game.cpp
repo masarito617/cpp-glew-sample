@@ -5,6 +5,7 @@
 #include "Components/SpriteComponent.h"
 #include "Commons/VertexArray.h"
 #include "Commons/Shader.h"
+#include "Commons/Texture.h"
 
 Game::Game()
 :mWindow(nullptr)
@@ -86,8 +87,8 @@ bool Game::InitSDL()
 bool Game::LoadShaders()
 {
     mShader = new Shader();
-    if (!mShader->Load(ShaderPath + "BasicVert.glsl",
-                       ShaderPath + "BasicFrag.glsl"))
+    if (!mShader->Load(ShaderPath + "SpriteVert.glsl",
+                       ShaderPath + "SpriteFrag.glsl"))
     {
         return false;
     }
@@ -105,10 +106,10 @@ void Game::CreateSpriteVertices()
 {
     // 頂点バッファ(x,y,z,u,v)
     float vertices[] = {
-            -0.5f,  0.5f, 0.0f,  // TOP LEFT
-             0.5f,  0.5f, 0.0f,  // TOP RIGHT
-             0.5f, -0.5f, 0.0f,  // BOTTOM RIGHT
-            -0.5f, -0.5f, 0.0f   // BOTTOM LEFT
+            -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, // TOP LEFT
+             0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // TOP RIGHT
+             0.5f, -0.5f, 0.0f, 1.0f, 1.0f, // BOTTOM RIGHT
+            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // BOTTOM LEFT
     };
     // インデックスバッファ
     unsigned int indices[] = {
@@ -123,11 +124,12 @@ void Game::RunLoop()
 {
     // アクタの作成
     auto* actor = new Actor(this);
-    actor->SetScale(300.0f);
     actor->SetRotation(Math::ToRadians(30.0f)); // Z軸の方向より、逆方向に回転するため注意
     actor->SetPosition(Vector2(50.0f, -100.0f));
-
-    new SpriteComponent(actor);
+    actor->SetScale(1.5f);
+    // テクスチャ設定
+    auto* sprite = new SpriteComponent(actor);
+    sprite->SetTexture(GetTexture(AssetsPath + "ship.png"));
 
     while (mIsRunning)
     {
@@ -214,7 +216,7 @@ void Game::GenerateOutput()
 
     // アルファブレンドを有効にする
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC0_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // シェーダ、頂点配列をアクティブにする
     mShader->SetActive();
@@ -233,11 +235,19 @@ void Game::GenerateOutput()
 // シャットダウン処理
 void Game::Shutdown()
 {
-    // インスタンスを破棄
+    // アクタを破棄
     while (!mActors.empty())
     {
         delete mActors.back();
     }
+
+    // テクスチャを破棄
+    for (auto i : mCachedTextures)
+    {
+        i.second->Unload();
+        delete i.second;
+    }
+    mCachedTextures.clear();
 
     // 頂点、シェーダの破棄
     delete mVertices;
@@ -295,4 +305,29 @@ void Game::RemoveSprite(SpriteComponent* sprite)
 {
     auto iter = std::find(mSprites.begin(), mSprites.end(), sprite);
     mSprites.erase(iter);
+}
+
+// テクスチャロード処理
+Texture* Game::GetTexture(const std::string &filePath)
+{
+    // キャッシュ済なら返却
+    auto iter = mCachedTextures.find(filePath);
+    if (iter != mCachedTextures.end())
+    {
+        return iter->second;
+    }
+
+    // テクスチャをロードする
+    Texture* texture = nullptr;
+    texture = new Texture();
+    if (texture->Load(filePath))
+    {
+        mCachedTextures.emplace(filePath, texture);
+    }
+    else
+    {
+        delete texture;
+        texture = nullptr;
+    }
+    return texture;
 }
