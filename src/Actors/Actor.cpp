@@ -8,7 +8,7 @@ Actor::Actor(Game* game)
 :mState(EActive)
 ,mPosition(Vector2::Zero)
 ,mScale(1.0f)
-,mRotation(0.0f)
+,mRotation(Quaternion())
 ,mGame(game)
 ,mRecalculateWorldTransform(true)
 {
@@ -89,12 +89,21 @@ void Actor::CalculateWouldTransform()
         // 2DのためZは固定
         mRecalculateWorldTransform = false;
         mWorldTransform = Matrix4::CreateTranslation(mPosition.x, mPosition.y, 0.0f);
-        mWorldTransform *= Matrix4::CreateRotationZ(mRotation);
+        mWorldTransform *= Matrix4::CreateQuaternion(mRotation);
         mWorldTransform *= Matrix4::CreateScale(mScale, mScale, 1.0f);
         // TODO ログ出力
         Matrix4::CreateScale(mScale, mScale, 1.0f).PrintMatrix();
-        Matrix4::CreateRotationZ(mRotation).PrintMatrix();
+        Matrix4::CreateQuaternion(mRotation).PrintMatrix();
         Matrix4::CreateTranslation(mPosition.x, mPosition.y, 0.0f).PrintMatrix();
         mWorldTransform.PrintMatrix();
     }
+}
+
+// TODO 全ての軸で機能するようにする
+// Z軸方向の回転を設定する
+void Actor::SetRotationZ(float radian)
+{
+    //Quaternion q(0.0f, 0.0f, 1.0f, radian);
+    Quaternion q(Math::VEC3_UNIT_Z, radian);
+    mRotation = Quaternion::Concatenate(mRotation, q);
 }

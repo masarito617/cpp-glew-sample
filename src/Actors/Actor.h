@@ -26,11 +26,13 @@ public:
 
     void CalculateWouldTransform(); // ワールド座標計算処理
 
+    void SetRotationZ(float radian); // Z軸の回転処理
+
 private:
-    State mState;      // 状態
-    Vector2 mPosition; // 位置
-    float mScale;      // 大きさ
-    float mRotation;   // 回転
+    State mState;         // 状態
+    Vector2 mPosition;    // 位置
+    float mScale;         // 大きさ
+    Quaternion mRotation; // 回転
     Matrix4 mWorldTransform;         // ワールド変換座標
     bool mRecalculateWorldTransform; // 再計算フラグ
 
@@ -47,8 +49,8 @@ public:
     void SetPosition(const Vector2& pos) { mPosition = pos; mRecalculateWorldTransform = true; }
     float GetScale() const { return mScale; }
     void SetScale(const float scale) { mScale = scale; mRecalculateWorldTransform = true; }
-    float GetRotation() const { return mRotation; }
-    void SetRotation(const float rotation) { mRotation = rotation; mRecalculateWorldTransform = true; }
+    const Quaternion& GetRotation() const { return mRotation; }
+    void SetRotation(const Quaternion& rotation) { mRotation = rotation; mRecalculateWorldTransform = true; }
     const Matrix4& GetWorldTransform() const { return mWorldTransform; }
 
 };

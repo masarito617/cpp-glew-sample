@@ -124,7 +124,7 @@ void Game::RunLoop()
 {
     // アクタの作成
     auto* actor = new Actor(this);
-    actor->SetRotation(Math::ToRadians(30.0f)); // Z軸の方向より、逆方向に回転するため注意
+    actor->SetRotationZ(Math::ToRadians(30.0f));
     actor->SetPosition(Vector2(50.0f, -100.0f));
     actor->SetScale(1.5f);
     // テクスチャ設定
