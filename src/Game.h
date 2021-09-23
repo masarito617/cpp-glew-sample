@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include "Commons/Math.h"
 
 // ゲーム管理クラス
 // *ゲーム全体の流れ、アクタ生成、テクスチャ読込を行う
@@ -18,8 +19,11 @@ public:
     void AddActor(class Actor* actor);    // アクタ追加
     void RemoveActor(class Actor* actor); // アクタ削除
 
-    void AddSprite(class SpriteComponent* sprite);    // 描画中のスプライトを追加
-    void RemoveSprite(class SpriteComponent* sprite); // 描画中のスプライトを削除
+    void AddSprite(class SpriteComponent* sprite);    // アクタのスプライトを追加
+    void RemoveSprite(class SpriteComponent* sprite); // アクタのスプライトを削除
+
+    void AddMesh(class MeshComponent* mesh);    // アクタのメッシュを追加
+    void RemoveMesh(class MeshComponent* mesh); // アクタのメッシュを削除
 
     class Texture* GetTexture(const std::string& filePath); // テクスチャ取得処理
 
@@ -29,18 +33,19 @@ public:
 private:
     bool InitSDL();        // SDL関連初期化
     bool LoadShaders();    // シェーダのロード処理
-    void CreateSpriteVertices(); // 頂点配列作成処理
     void Update();         // シーン更新処理
     void ProcessInput();   // 入力検知
     void GenerateOutput(); // 出力処理
 
     std::vector<class Actor*> mActors;            // アクタリスト
     std::vector<class Actor*> mPendingActors;     // 待機中のアクタリスト
-    std::vector<class SpriteComponent*> mSprites; // 描画中のスプライトリスト
+    std::vector<class SpriteComponent*> mSprites; // アクタのスプライトリスト
+    std::vector<class MeshComponent*> mMeshes;    // アクタのメッシュリスト
     std::unordered_map<std::string, class Texture*> mCachedTextures; // キャッシュ済テクスチャリスト
 
-    class Shader* mShader;        // シェーダ
-    class VertexArray* mVertices; // 頂点配列
+    class Shader* mShader;     // シェーダ
+    Matrix4 mViewMatrix;       // ビュー変換行列
+    Matrix4 mProjectionMatrix; // 射影変換行列
 
     SDL_Window* mWindow;     // SDLウィンドウ
     SDL_GLContext mContext;  // SDLコンテキスト
@@ -48,15 +53,21 @@ private:
     bool mIsRunning;         // 実行中か否か？
     bool mUpdatingActors;    // アクタ更新中か否か？
     
-    // 画像パス
+    // Assetsパス
     const std::string AssetsPath = "../Assets/"; // Mac + CLion
     //const std::string AssetsPath = "Assets\\"; // Win + VisualStudio
 
     // シェーダーパス
     const std::string ShaderPath = "../src/Shaders/"; // Mac + CLion
 
+    // TODO 回転テスト
+    Actor* testActor;
+    float testRot = 1.0f;
+
 public:
     // getter, setter
     std::vector<class Actor*> GetActors() { return mActors; }
     std::string GetAssetsPath() const { return AssetsPath; }
+    void SetViewMatrix(const Matrix4& view) { mViewMatrix = view; }
+
 };

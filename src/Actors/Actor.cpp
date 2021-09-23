@@ -6,8 +6,8 @@
 
 Actor::Actor(Game* game)
 :mState(EActive)
-,mPosition(Vector2::Zero)
-,mScale(1.0f)
+,mPosition(Math::VEC3_ZERO)
+,mScale(Math::VEC3_UNIT)
 ,mRotation(Quaternion())
 ,mGame(game)
 ,mRecalculateWorldTransform(true)
@@ -52,6 +52,11 @@ void Actor::UpdateActor(float deltaTime)
 {
 }
 
+// キー入力処理
+void Actor::ProcessInput(const uint8_t *state)
+{
+}
+
 // コンポーネント追加
 void Actor::AddComponent(Component* component)
 {
@@ -86,24 +91,41 @@ void Actor::CalculateWouldTransform()
     {
         // 拡大縮小 -> 回転 -> 平行移動
         // を逆の順番で乗算する。
-        // 2DのためZは固定
         mRecalculateWorldTransform = false;
-        mWorldTransform = Matrix4::CreateTranslation(mPosition.x, mPosition.y, 0.0f);
+        mWorldTransform = Matrix4::CreateTranslation(mPosition.x, mPosition.y, mPosition.z);
         mWorldTransform *= Matrix4::CreateQuaternion(mRotation);
-        mWorldTransform *= Matrix4::CreateScale(mScale, mScale, 1.0f);
+        mWorldTransform *= Matrix4::CreateScale(mScale.x, mScale.y, mScale.z);
         // TODO ログ出力
-        Matrix4::CreateScale(mScale, mScale, 1.0f).PrintMatrix();
+        Matrix4::CreateScale(mScale.x, mScale.y, mScale.z).PrintMatrix();
         Matrix4::CreateQuaternion(mRotation).PrintMatrix();
-        Matrix4::CreateTranslation(mPosition.x, mPosition.y, 0.0f).PrintMatrix();
+        Matrix4::CreateTranslation(mPosition.x, mPosition.y, mPosition.z).PrintMatrix();
         mWorldTransform.PrintMatrix();
     }
 }
 
-// TODO 全ての軸で機能するようにする
-// Z軸方向の回転を設定する
+// 前方ベクトルを取得する
+Vector3 Actor::GetForward() const
+{
+    // Z方向の単位ベクトルとクォータニオンから計算
+    return Quaternion::RotateVec(Math::VEC3_UNIT_Z, mRotation);
+}
+
+// クォータニオンを加えて回転させる
+void Actor::SetRotationX(float radian)
+{
+    Quaternion q(Math::VEC3_UNIT_X, radian);
+    mRotation = Quaternion::Concatenate(mRotation, q);
+    mRecalculateWorldTransform = true;
+}
+void Actor::SetRotationY(float radian)
+{
+    Quaternion q(Math::VEC3_UNIT_Y, radian);
+    mRotation = Quaternion::Concatenate(mRotation, q);
+    mRecalculateWorldTransform = true;
+}
 void Actor::SetRotationZ(float radian)
 {
-    //Quaternion q(0.0f, 0.0f, 1.0f, radian);
     Quaternion q(Math::VEC3_UNIT_Z, radian);
     mRotation = Quaternion::Concatenate(mRotation, q);
+    mRecalculateWorldTransform = true;
 }

@@ -88,7 +88,7 @@ public:
 };
 
 // クォータニオン
-// 
+//
 class Quaternion
 {
 public:
@@ -134,6 +134,17 @@ public:
 
         // クォータニオンとして返却
         return Quaternion(outVec.x, outVec.y, outVec.z, outW);
+    }
+
+    // クォータニオンでベクトルを回転させる
+    static Vector3 RotateVec(const Vector3& v, const Quaternion& q)
+    {
+        // TODO なぜこの式になるのか？行列での回転ではだめ？
+        // vec = 2.0*qv・(qv・v + qw*v）
+        Vector3 qv(q.x, q.y, q.z);
+        Vector3 retVec = v;
+        retVec += 2.0f * Vector3::Cross(qv, Vector3::Cross(qv, v) + q.w*v);
+        return retVec;
     }
 };
 
@@ -286,56 +297,25 @@ public:
         temp[0][1] = 2.0f*q.x*q.y - 2.0f*q.w*q.z;
         temp[0][2] = 2.0f*q.x*q.z + 2.0f*q.w*q.y;
         temp[0][3] = 0.0f;
-
         // row2
         temp[1][0] = 2.0f*q.x*q.y + 2.0f*q.w*q.z;
         temp[1][1] = 1.0f - 2.0f*q.x*q.x - 2.0f*q.z*q.z;
         temp[1][2] = 2.0f*q.y*q.z - 2.0f*q.w*q.x;
         temp[1][3] = 0.0f;
-
         // row3
         temp[2][0] = 2.0f*q.x*q.z - 2.0f*q.w*q.y;
         temp[2][1] = 2.0f*q.y*q.z + 2.0f*q.w*q.x;
         temp[2][2] = 1.0f - 2.0f*q.x*q.x - 2.0f*q.y*q.y;
         temp[2][3] = 0.0f;
-
         // row4
         temp[3][0] = 0.0f;
         temp[3][1] = 0.0f;
         temp[3][2] = 0.0f;
         temp[3][3] = 1.0f;
-
-        // 逆回転
-//        // | 1-2qy^2-2qz^2 2qxqy+2qwqz   2qxqz-2qwqy   0 |
-//        // | 2qxqy-2qwqz   1-2qx^2-2qz^2 2qyqz+2qwqx   0 |
-//        // | 2qxqz+2qwqy   2qyqz-2qwqx   1-2qx^2-2qy^2 0 |
-//        // | 0             0             0             1 |
-//        float temp[4][4];
-//        // row1
-//        temp[0][0] = 1.0f - 2.0f*q.y*q.y - 2.0f*q.z*q.z;
-//        temp[0][1] = 2.0f*q.x*q.y + 2.0f*q.w*q.z;
-//        temp[0][2] = 2.0f*q.x*q.z - 2.0f*q.w*q.y;
-//        temp[0][3] = 0.0f;
-//        // row2
-//        temp[1][0] = 2.0f*q.x*q.y - 2.0f*q.w*q.z;
-//        temp[1][1] = 1.0f - 2.0f*q.x*q.x - 2.0f*q.z*q.z;
-//        temp[1][2] = 2.0f*q.y*q.z + 2.0f*q.w*q.x;
-//        temp[1][3] = 0.0f;
-//        // row3
-//        temp[2][0] = 2.0f*q.x*q.z + 2.0f*q.w*q.y;
-//        temp[2][1] = 2.0f*q.y*q.z - 2.0f*q.w*q.x;
-//        temp[2][2] = 1.0f - 2.0f*q.x*q.x - 2.0f*q.y*q.y;
-//        temp[2][3] = 0.0f;
-//        // row4
-//        temp[3][0] = 0.0f;
-//        temp[3][1] = 0.0f;
-//        temp[3][2] = 0.0f;
-//        temp[3][3] = 1.0f;
-
         return Matrix4(temp);
     }
 
-    // ビュー射影行列
+    // ビュー射影行列（2D用）
     static Matrix4 CreateSimpleViewProjection(float width, float height)
     {
         float temp[4][4] =
@@ -344,6 +324,51 @@ public:
             { 0.0f, 2.0f/height, 0.0f, 0.0f },
             { 0.0f, 0.0f, 1.0f, 0.0f },
             { 0.0f, 0.0f, 0.0f, 1.0f },
+        };
+        return Matrix4(temp);
+    }
+
+    // ビュー行列
+    // eye：自身の位置
+    // target：注視対象の位置
+    // up：上方向ベクトル
+    static Matrix4 CreateLookAt(const Vector3& eye, const Vector3& target, const Vector3& up)
+    {
+        Vector3 k = Vector3::Normalize(target - eye);
+        Vector3 i = Vector3::Normalize(Vector3::Cross(up, k));
+        Vector3 j = Vector3::Normalize(Vector3::Cross(k, i));
+        Vector3 t;
+        t.x = -Vector3::Dot(i, eye);
+        t.y = -Vector3::Dot(j, eye);
+        t.z = -Vector3::Dot(k, eye);
+
+        float temp[4][4] =
+        {
+            { i.x,  i.y,  i.z,  t.x },
+            { j.x,  j.y,  j.z,  t.y },
+            { k.x,  k.y,  k.z,  t.z },
+            { 0.0f, 0.0f, 0.0f, 1.0f },
+        };
+        return Matrix4(temp);
+    }
+
+    // Perspective射影行列
+    // fov：縦方向に画面に入る範囲（垂直画角）
+    // near、far：近接、遠方の見える範囲
+    static Matrix4 CreatePerspectiveFOV(float fov, float width, float height,
+                                        float near, float far)
+    {
+        // yScale = cot(fov/2.0f)
+        // xScale = yScale・(height/width)
+        float yScale = 1.0f / tanf(fov/2.0f);
+        float xScale = yScale * height / width;
+
+        float temp[4][4] =
+        {
+            { xScale, 0.0f,   0.0f, 0.0f },
+            { 0.0f,   yScale, 0.0f, 0.0f },
+            { 0.0f,   0.0f,   far/(far-near), -near*far/(far-near) },
+            { 0.0f,   0.0f,   1.0f, 0.0f },
         };
         return Matrix4(temp);
     }
@@ -378,6 +403,7 @@ namespace Math
 
     // vec3
     static const Vector3 VEC3_ZERO   = Vector3(0.0f, 0.0f, 0.0f);
+    static const Vector3 VEC3_UNIT   = Vector3(1.0f, 1.0f, 1.0f);
     static const Vector3 VEC3_UNIT_X = Vector3(1.0f, 0.0f, 0.0f);
     static const Vector3 VEC3_UNIT_Y = Vector3(0.0f, 1.0f, 0.0f);
     static const Vector3 VEC3_UNIT_Z = Vector3(0.0f, 0.0f, 1.0f);

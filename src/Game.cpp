@@ -2,10 +2,13 @@
 #include "GL/glew.h"
 #include "SDL_image.h"
 #include "Actors/Actor.h"
+#include "Actors/Camera.h"
 #include "Components/SpriteComponent.h"
+#include "Components/MeshComponent.h"
 #include "Commons/VertexArray.h"
 #include "Commons/Shader.h"
 #include "Commons/Texture.h"
+#include "Commons/Mesh.h"
 
 Game::Game()
 :mWindow(nullptr)
@@ -38,9 +41,6 @@ bool Game::Initialize()
         return false;
     }
 
-    // 頂点配列の作成
-    CreateSpriteVertices();
-
     // ゲーム時間取得
     mTicksCount = SDL_GetTicks();
 
@@ -65,13 +65,15 @@ bool Game::InitSDL()
     SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+    // Zバッファのビット数
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     // ダブルバッファ
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     // ハードウェアアクセラレーション
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
     // OpenGLウィンドウの作成
-    mWindow = SDL_CreateWindow("ShootingGame",
+    mWindow = SDL_CreateWindow("OpenGLTest",
                                100, 100, ScreenWidth, ScreenHeight,
                                SDL_WINDOW_OPENGL);
     if (!mWindow) return false;
@@ -88,48 +90,40 @@ bool Game::LoadShaders()
 {
     mShader = new Shader();
     if (!mShader->Load(ShaderPath + "SpriteVert.glsl",
-                       ShaderPath + "SpriteFrag.glsl"))
+                       ShaderPath + "BasicFrag.glsl")) // TODO
     {
         return false;
     }
     mShader->SetActive();
 
-    // ビュー射影座標を設定
-    Matrix4 viewProjection = Matrix4::CreateSimpleViewProjection(ScreenWidth, ScreenHeight);
-    mShader->SetMatrixUniform(mShader->UNIFORM_VIEW_PROJECTION_NAME, viewProjection);
-    viewProjection.PrintMatrix();
+    // ビュー射影座標を設定(View*Projectionの逆算)
+    mViewMatrix = Matrix4::CreateLookAt(Math::VEC3_ZERO, Math::VEC3_UNIT_Z, Math::VEC3_UNIT_Y); // カメラ無しの初期値
+    mProjectionMatrix = Matrix4::CreatePerspectiveFOV(Math::ToRadians(50.0f), ScreenWidth, ScreenHeight,
+                                                      25.0f, 10000.0f);
+    mShader->SetMatrixUniform(mShader->UNIFORM_VIEW_PROJECTION_NAME, mProjectionMatrix * mViewMatrix);
     return true;
-}
-
-// 頂点作成処理
-void Game::CreateSpriteVertices()
-{
-    // 頂点バッファ(x,y,z,u,v)
-    float vertices[] = {
-            -0.5f,  0.5f, 0.0f, 0.0f, 0.0f, // TOP LEFT
-             0.5f,  0.5f, 0.0f, 1.0f, 0.0f, // TOP RIGHT
-             0.5f, -0.5f, 0.0f, 1.0f, 1.0f, // BOTTOM RIGHT
-            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // BOTTOM LEFT
-    };
-    // インデックスバッファ
-    unsigned int indices[] = {
-            0, 1, 2,
-            2, 3, 0
-    };
-    mVertices = new VertexArray(vertices, 4, indices, 6);
 }
 
 // ゲームループ処理
 void Game::RunLoop()
 {
+    // カメラ作成
+    auto* camera = new Camera(this);
+    camera->SetPosition(Vector3(0.0f, 0.0f, -450.0f));
+
     // アクタの作成
-    auto* actor = new Actor(this);
-    actor->SetRotationZ(Math::ToRadians(30.0f));
-    actor->SetPosition(Vector2(50.0f, -100.0f));
-    actor->SetScale(1.5f);
-    // テクスチャ設定
-    auto* sprite = new SpriteComponent(actor);
-    sprite->SetTexture(GetTexture(AssetsPath + "ship.png"));
+    testActor = new Actor(this);
+    testActor->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
+    testActor->SetScale(Vector3(100.0f, 100.0f, 100.0f));
+    // TODO テクスチャ設定
+//    auto* sprite = new SpriteComponent(actor);
+//    sprite->SetTexture(GetTexture(AssetsPath + "ship.png"));
+
+    // メッシュ設定
+    auto* meshComp = new MeshComponent(testActor);
+    auto* mesh = new Mesh();
+    mesh->Load(AssetsPath + "cube.fbx");
+    meshComp->SetMesh(mesh);
 
     while (mIsRunning)
     {
@@ -180,6 +174,10 @@ void Game::Update()
     {
         delete actor;
     }
+
+    // TODO 回転テスト
+    testActor->SetRotationX(Math::ToRadians(testRot));
+    testActor->SetRotationZ(Math::ToRadians(testRot));
 }
 
 // ゲームループ 入力検知
@@ -202,6 +200,12 @@ void Game::ProcessInput()
     {
         mIsRunning = false;
     }
+
+    // 各アクタの入力イベント
+    for (auto actor : mActors)
+    {
+        actor->ProcessInput(state);
+    }
 }
 
 // ゲームループ 出力処理
@@ -212,21 +216,32 @@ void Game::GenerateOutput()
                  0.2f,
                  0.2f,
                  1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // アルファブレンドを有効にする
+    // シェーダをアクティブにする
+    mShader->SetActive();
+    // カメラオブジェクトで変更されたビュー射影行列を再設定
+    mShader->SetMatrixUniform(mShader->UNIFORM_VIEW_PROJECTION_NAME, mProjectionMatrix * mViewMatrix);
+
+    // Zバッファ有効、アルファブレンド無効
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+    // メッシュ描画
+    for (auto mesh : mMeshes)
+    {
+        mesh->Draw(mShader);
+    }
+
+    // Zバッファ無効、アルファブレンド有効
+    glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // シェーダ、頂点配列をアクティブにする
-    mShader->SetActive();
-    mVertices->SetActive();
-
-    // スプライト描画
-    for (auto sprite : mSprites)
-    {
-        sprite->Draw(mShader);
-    }
+    // TODO スプライト描画
+//    for (auto sprite : mSprites)
+//    {
+//        sprite->Draw(mShader);
+//    }
 
     // バックバッファとスワップ(ダブルバッファ)
     SDL_GL_SwapWindow(mWindow);
@@ -249,8 +264,7 @@ void Game::Shutdown()
     }
     mCachedTextures.clear();
 
-    // 頂点、シェーダの破棄
-    delete mVertices;
+    // シェーダの破棄
     mShader->Unload();
     delete mShader;
 
@@ -284,7 +298,7 @@ void Game::RemoveActor(Actor* actor)
     }
 }
 
-// 描画中のスプライト追加処理
+// スプライト追加処理
 void Game::AddSprite(SpriteComponent* sprite)
 {
     // 描画順にソートして追加
@@ -300,11 +314,24 @@ void Game::AddSprite(SpriteComponent* sprite)
     mSprites.insert(iter, sprite);
 }
 
-// 描画中のスプライト削除処理
+// スプライト削除処理
 void Game::RemoveSprite(SpriteComponent* sprite)
 {
     auto iter = std::find(mSprites.begin(), mSprites.end(), sprite);
     mSprites.erase(iter);
+}
+
+// メッシュを追加
+void Game::AddMesh(class MeshComponent* mesh)
+{
+    mMeshes.emplace_back(mesh);
+}
+
+// メッシュを削除
+void Game::RemoveMesh(class MeshComponent* mesh)
+{
+    auto iter = std::find(mMeshes.begin(), mMeshes.end(), mesh);
+    mMeshes.erase(iter);
 }
 
 // テクスチャロード処理

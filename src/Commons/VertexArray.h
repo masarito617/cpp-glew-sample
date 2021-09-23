@@ -19,4 +19,7 @@ private:
     unsigned int mIndexBuffer;  // インデックスバッファのOpenGLID
     unsigned int mVertexArray;  // 頂点配列オブジェクトのOpenGLID
 
+public:
+    unsigned int GetNumIndices() { return mNumIndices; }
+
 };

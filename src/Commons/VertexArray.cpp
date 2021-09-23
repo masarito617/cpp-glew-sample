@@ -16,7 +16,7 @@ VertexArray::VertexArray(const float *vertices,
     glGenBuffers(1, &mVertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, mVertexBuffer);
     glBufferData(GL_ARRAY_BUFFER,                 // バッファの種類
-                 numVertices * 5 * sizeof(float), // コピーするバイト数(x, y, z, u, v)
+                 numVertices * 8 * sizeof(float), // コピーするバイト数(位置(xyz), 法線(xyz), u, v)
                  vertices,                        // コピー元
                  GL_STATIC_DRAW);                 // データの利用方法
 
@@ -29,13 +29,17 @@ VertexArray::VertexArray(const float *vertices,
                  GL_STATIC_DRAW);                   // データの利用方法
 
     // 頂点レイアウトの指定
-    // 頂点属性0: x,y,z
+    // 頂点属性0: 位置(x,y,z)
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 5, 0);
-    // 頂点属性1: u,v
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8, 0);
+    // 頂点属性1: 法線(x,y,z)
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 5,
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 8,
                           reinterpret_cast<void*>(sizeof(float) * 3)); // オフセット値
+    // 頂点属性2: u,v
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8,
+                          reinterpret_cast<void*>(sizeof(float) * 6)); // オフセット値
 }
 
 VertexArray::~VertexArray()
