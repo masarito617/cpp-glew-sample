@@ -122,7 +122,7 @@ void Game::RunLoop()
     // メッシュ設定
     auto* meshComp = new MeshComponent(testActor);
     auto* mesh = new Mesh();
-    mesh->Load(AssetsPath + "cube.fbx");
+    mesh->Load(AssetsPath + "saikoro.fbx");
     meshComp->SetMesh(mesh);
 
     while (mIsRunning)

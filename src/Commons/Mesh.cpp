@@ -2,6 +2,9 @@
 #include "VertexArray.h"
 #include <fbxsdk.h>
 #include <SDL.h>
+#include <iostream>
+#include <vector>
+#include <map>
 
 Mesh::Mesh()
 :mVertexArray(nullptr)
@@ -45,23 +48,60 @@ bool Mesh::Load(const std::string &filePath)
         return false;
     }
 
+    FbxStringList uvSetNameList;
+    mesh->GetUVSetNames(uvSetNameList);
+
     // 頂点座標の読込
     int vertexCount = mesh->GetControlPointsCount();
-    float vertices[vertexCount * 8]; // 頂点数*8(position,normal,u,v)
-    for (int i = 0; i < vertexCount; i++)
+    std::map<int, std::vector<float>> cachedVerticesMap; // Indexでソートするためmapを使用する
+
+    // ポリゴンごとにループする
+    int polCount = mesh->GetPolygonCount();
+    for (int polIndex = 0; polIndex < polCount; polIndex++)
     {
-        int index = i * 8;
-        // position(x,y,z)
-        FbxVector4 point = mesh->GetControlPointAt(i);
-        vertices[index + 0] = point[0];
-        vertices[index + 1] = point[1];
-        vertices[index + 2] = point[2];
-        // TODO 法線、UV値の設定
-        vertices[index + 3] = 0.0f;
-        vertices[index + 4] = 0.0f;
-        vertices[index + 5] = 0.0f;
-        vertices[index + 6] = 0.0f;
-        vertices[index + 7] = 0.0f;
+        // 頂点数の取得
+        int polVertexCount = mesh->GetPolygonSize(polIndex);
+        for (int polVertexIndex = 0; polVertexIndex < polVertexCount; polVertexIndex++)
+        {
+            // 頂点インデックスからポイントを取得
+            int vertexIndex = mesh->GetPolygonVertex(polIndex, polVertexIndex);
+            // キャッシュ済なら飛ばす
+            auto iter = cachedVerticesMap.find(vertexIndex);
+            if (iter != cachedVerticesMap.end())
+            {
+                continue;
+            }
+
+            // 頂点座標の設定
+            FbxVector4 point = mesh->GetControlPointAt(vertexIndex);
+            std::vector<float> vertices;
+            vertices.push_back(point[0]);
+            vertices.push_back(point[1]);
+            vertices.push_back(point[2]);
+
+            // TODO 法線の設定
+            vertices.push_back(0.0f);
+            vertices.push_back(0.0f);
+            vertices.push_back(0.0f);
+
+            // TODO UV値の設定
+            // const char* uvSetName = uvSetNameList.GetStringAt(i);
+            vertices.push_back(0.0f);
+            vertices.push_back(0.0f);
+
+            cachedVerticesMap.emplace(vertexIndex, vertices);
+        }
+    }
+
+    // キャッシュした情報を頂点座標配列に変換
+    float vertices[cachedVerticesMap.size() * 8];
+    int index = 0;
+    for (auto cachedVertices : cachedVerticesMap)
+    {
+        for (auto vertexInfo : cachedVertices.second)
+        {
+            vertices[index++] = vertexInfo;
+        }
     }
 
     // インデックスバッファの読込
@@ -73,6 +113,7 @@ bool Mesh::Load(const std::string &filePath)
     }
 
     // 頂点クラスの初期化
+
     mVertexArray = new VertexArray(vertices, vertexCount, indices, indexCount);
 
     // マネージャー、シーンの破棄
