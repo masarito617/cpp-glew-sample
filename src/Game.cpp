@@ -90,7 +90,7 @@ bool Game::LoadShaders()
 {
     mShader = new Shader();
     if (!mShader->Load(ShaderPath + "SpriteVert.glsl",
-                       ShaderPath + "BasicFrag.glsl")) // TODO
+                       ShaderPath + "SpriteFrag.glsl")) // TODO
     {
         return false;
     }
@@ -116,6 +116,8 @@ void Game::RunLoop()
     testActor->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
     testActor->SetScale(Vector3(100.0f, 100.0f, 100.0f));
     // TODO テクスチャ設定
+    Texture* testTexture = GetTexture(AssetsPath + "saikoro_tex.png");
+    testTexture->SetActive();
 //    auto* sprite = new SpriteComponent(actor);
 //    sprite->SetTexture(GetTexture(AssetsPath + "ship.png"));
 

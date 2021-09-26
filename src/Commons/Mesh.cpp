@@ -48,72 +48,135 @@ bool Mesh::Load(const std::string &filePath)
         return false;
     }
 
+    // UVセット名の取得
     FbxStringList uvSetNameList;
     mesh->GetUVSetNames(uvSetNameList);
+    const char* uvSetName = uvSetNameList.GetStringAt(0); // TODO 複数ある場合を考慮しなければならない
+
+    FbxArray<FbxVector2> uvSets;
+    mesh->GetPolygonVertexUVs(uvSetName, uvSets);
 
     // 頂点座標の読込
-    int vertexCount = mesh->GetControlPointsCount();
-    std::map<int, std::vector<float>> cachedVerticesMap; // Indexでソートするためmapを使用する
+    std::vector<std::vector<float>> vertexList;
+    for (int i = 0; i < mesh->GetControlPointsCount(); i++)
+    {
+        FbxVector4 point = mesh->GetControlPointAt(i);
+        std::vector<float> vertex;
+        vertex.push_back(point[0]);
+        vertex.push_back(point[1]);
+        vertex.push_back(point[2]);
+        vertexList.push_back(vertex);
+    }
 
-    // ポリゴンごとにループする
+    // インデックス座標の読込
+    std::vector<int> vertexIndexList;
+    std::vector<std::vector<int>> newVertexIndexList;
+    // ポリゴンごとにループ
     int polCount = mesh->GetPolygonCount();
     for (int polIndex = 0; polIndex < polCount; polIndex++)
     {
-        // 頂点数の取得
+        // 頂点ごとにループ
         int polVertexCount = mesh->GetPolygonSize(polIndex);
         for (int polVertexIndex = 0; polVertexIndex < polVertexCount; polVertexIndex++)
         {
-            // 頂点インデックスからポイントを取得
+            // 頂点インデックスの取得
             int vertexIndex = mesh->GetPolygonVertex(polIndex, polVertexIndex);
-            // キャッシュ済なら飛ばす
-            auto iter = cachedVerticesMap.find(vertexIndex);
-            if (iter != cachedVerticesMap.end())
+            std::vector<float> vertex = vertexList[vertexIndex];
+
+            // UV座標の取得
+            FbxVector2 uvVec2;
+            bool isUnMapped;
+            mesh->GetPolygonVertexUV(polIndex, polVertexIndex, uvSetName, uvVec2, isUnMapped);
+
+            if (vertex.size() == 3)
             {
-                continue;
+                // UV座標未設定の場合、設定する
+                vertex.push_back(uvVec2[0]);
+                vertex.push_back(uvVec2[1]);
+                vertexList[vertexIndex] = vertex;
             }
+            else if (!(fabs(vertex[3] - uvVec2[0] < FLT_EPSILON) && fabs(vertex[4] - uvVec2[1] < FLT_EPSILON)))
+            {
+                // ＊同一頂点インデックスの中でUV座標が異なる場合、
+                // 新たな頂点インデックスとして作成する
 
-            // 頂点座標の設定
-            FbxVector4 point = mesh->GetControlPointAt(vertexIndex);
-            std::vector<float> vertices;
-            vertices.push_back(point[0]);
-            vertices.push_back(point[1]);
-            vertices.push_back(point[2]);
-
-            // TODO 法線の設定
-            vertices.push_back(0.0f);
-            vertices.push_back(0.0f);
-            vertices.push_back(0.0f);
-
-            // TODO UV値の設定
-            // const char* uvSetName = uvSetNameList.GetStringAt(i);
-            vertices.push_back(0.0f);
-            vertices.push_back(0.0f);
-
-            cachedVerticesMap.emplace(vertexIndex, vertices);
+                // 作成済かどうか？
+                bool isCreated = false;
+                for (int i = 0; i < newVertexIndexList.size(); i++)
+                {
+                    auto indexInfo = newVertexIndexList[i];
+                    int oldIndex = indexInfo[0];
+                    int newIndex = indexInfo[1];
+                    if (oldIndex == vertexIndex
+                    && fabs(vertexList[newIndex][3] - uvVec2[0] < FLT_EPSILON)
+                    && fabs(vertexList[newIndex][4] - uvVec2[1] < FLT_EPSILON))
+                    {
+                        isCreated = true;
+                        vertexIndex = newIndex;
+                        break;
+                    }
+                }
+                // 作成済でない場合
+                if (!isCreated)
+                {
+                    // 新たな頂点インデックスとして作成
+                    std::vector<float> newPosVertex;
+                    newPosVertex.push_back(vertex[0]);
+                    newPosVertex.push_back(vertex[1]);
+                    newPosVertex.push_back(vertex[2]);
+                    newPosVertex.push_back(uvVec2[0]);
+                    newPosVertex.push_back(uvVec2[1]);
+                    vertexList.push_back(newPosVertex);
+                    // 作成したインデックス情報を設定
+                    int newIndex = vertexList.size() - 1;
+                    std::vector<int> newVertexIndex;
+                    newVertexIndex.push_back(vertexIndex); // old index
+                    newVertexIndex.push_back(newIndex);    // new index
+                    newVertexIndexList.push_back(newVertexIndex);
+                    vertexIndex = newIndex;
+                }
+            }
+            // インデックスバッファを追加
+            vertexIndexList.push_back(vertexIndex);
         }
     }
 
-    // キャッシュした情報を頂点座標配列に変換
-    float vertices[cachedVerticesMap.size() * 8];
-    int index = 0;
-    for (auto cachedVertices : cachedVerticesMap)
+    // 頂点座標配列の作成
+    int vertexCount = vertexList.size();
+    float vertices[vertexList.size() * 8];
+    for (int i = 0; i < vertexList.size(); i++)
     {
-        for (auto vertexInfo : cachedVertices.second)
+        auto vertex = vertexList[i];
+        // 位置座標
+        vertices[i*8+0] = vertex[0];
+        vertices[i*8+1] = vertex[1];
+        vertices[i*8+2] = vertex[2];
+        // TODO 法線座標の設定
+        vertices[i*8+3] = 0.0f;
+        vertices[i*8+4] = 0.0f;
+        vertices[i*8+5] = 0.0f;
+        // UV座標
+        vertices[i*8+6] = vertex[3];
+        vertices[i*8+7] = -vertex[4]; // V座標は反転させる
+
+        // TODO ログ出力
+        for (int j = 0; j < 8; j++)
         {
-            vertices[index++] = vertexInfo;
+            std::cout << vertices[i*8+j] << ", ";
         }
+        std::cout << std::endl;
     }
 
-    // インデックスバッファの読込
-    int indexCount = mesh->GetPolygonVertexCount();
-    unsigned int indices[indexCount];
-    for (int i = 0; i < indexCount; i++)
+    // インデックスバッファ配列の作成
+    int indexCount = vertexIndexList.size();
+    unsigned int indices[vertexIndexList.size()];
+    for (int i = 0; i < vertexIndexList.size(); i++)
     {
-        indices[i] = mesh->GetPolygonVertices()[i];
+        auto vertexIndex = vertexIndexList[i];
+        indices[i] = vertexIndex; // new
     }
 
     // 頂点クラスの初期化
-
     mVertexArray = new VertexArray(vertices, vertexCount, indices, indexCount);
 
     // マネージャー、シーンの破棄
