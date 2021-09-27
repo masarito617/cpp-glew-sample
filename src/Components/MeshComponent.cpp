@@ -1,6 +1,7 @@
 #include "MeshComponent.h"
 #include "../Game.h"
 #include "../Commons/Shader.h"
+#include "../Commons/Texture.h"
 #include "../Commons/Mesh.h"
 #include "../Commons/VertexArray.h"
 #include "../Actors/Actor.h"
@@ -8,7 +9,6 @@
 MeshComponent::MeshComponent(class Actor *actor)
 : Component(actor)
 , mMesh(nullptr)
-, mTextureIndex(0)
 {
     mActor->GetGame()->AddMesh(this);
 }
@@ -26,7 +26,9 @@ void MeshComponent::Draw(class Shader *shader)
     Matrix4 world = mActor->GetWorldTransform();
     shader->SetMatrixUniform(shader->UNIFORM_WOULD_TRANSFORM_NAME, world);
 
-    // TODO テクスチャのアクティブ化
+    // テクスチャをアクティブにする
+    Texture* texture = mMesh->GetTexture();
+    if (texture) texture->SetActive();
 
     // 頂点座標をアクティブにする
     auto vertexArray = mMesh->GetVertexArray();

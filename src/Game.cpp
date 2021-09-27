@@ -111,20 +111,14 @@ void Game::RunLoop()
     auto* camera = new Camera(this);
     camera->SetPosition(Vector3(0.0f, 0.0f, -450.0f));
 
-    // アクタの作成
+    // TODO アクタの作成
     testActor = new Actor(this);
     testActor->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
     testActor->SetScale(Vector3(100.0f, 100.0f, 100.0f));
-    // TODO テクスチャ設定
-    Texture* testTexture = GetTexture(AssetsPath + "saikoro_tex.png");
-    testTexture->SetActive();
-//    auto* sprite = new SpriteComponent(actor);
-//    sprite->SetTexture(GetTexture(AssetsPath + "ship.png"));
-
     // メッシュ設定
     auto* meshComp = new MeshComponent(testActor);
     auto* mesh = new Mesh();
-    mesh->Load(AssetsPath + "saikoro.fbx");
+    mesh->Load(AssetsPath + "saikoro.fbx", this);
     meshComp->SetMesh(mesh);
 
     while (mIsRunning)
@@ -238,7 +232,6 @@ void Game::GenerateOutput()
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     // TODO スプライト描画
 //    for (auto sprite : mSprites)
 //    {

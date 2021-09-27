@@ -1,5 +1,6 @@
 #include "Mesh.h"
 #include "VertexArray.h"
+#include "../Game.h"
 #include <fbxsdk.h>
 #include <SDL.h>
 #include <iostream>
@@ -8,13 +9,14 @@
 
 Mesh::Mesh()
 :mVertexArray(nullptr)
+,mTexture(nullptr)
 ,mRadius(0.0f)
 {}
 
 Mesh::~Mesh()
 {}
 
-bool Mesh::Load(const std::string &filePath)
+bool Mesh::Load(const std::string &filePath, Game* game)
 {
     // マネージャーの初期化
     FbxManager* manager = FbxManager::Create();
@@ -48,13 +50,29 @@ bool Mesh::Load(const std::string &filePath)
         return false;
     }
 
+    // テクスチャの読込
+    // ＊現状１つしか読み込めない
+    std::string fileName = "default_tex.png";
+    int materialCount = scene->GetMaterialCount();
+    if (materialCount > 0)
+    {
+        // マテリアル取得
+        FbxSurfaceMaterial* material = scene->GetMaterial(0);
+        FbxProperty property = material->FindProperty(FbxSurfaceMaterial::sDiffuse);
+        int textureCount = property.GetSrcObjectCount();
+        if (textureCount > 0)
+        {
+            // テクスチャ名取得
+            FbxFileTexture* fileTexture = scene->GetSrcObject<FbxFileTexture>(0);
+            fileName = FbxPathUtils::GetFileName(fileTexture->GetFileName());
+        }
+    }
+    mTexture = game->GetTexture(game->GetAssetsPath() + fileName);
+
     // UVセット名の取得
     FbxStringList uvSetNameList;
     mesh->GetUVSetNames(uvSetNameList);
-    const char* uvSetName = uvSetNameList.GetStringAt(0); // TODO 複数ある場合を考慮しなければならない
-
-    FbxArray<FbxVector2> uvSets;
-    mesh->GetPolygonVertexUVs(uvSetName, uvSets);
+    const char* uvSetName = uvSetNameList.GetStringAt(0);
 
     // 頂点座標の読込
     std::vector<std::vector<float>> vertexList;
@@ -192,7 +210,7 @@ void Mesh::Unload()
     mVertexArray = nullptr;
 }
 
-Texture* Mesh::GetTexture(size_t index)
+Texture* Mesh::GetTexture()
 {
-    return index < mTextures.size() ? mTextures[index] : nullptr;
+    return mTexture;
 }
