@@ -19,6 +19,8 @@ public:
 
     // Uniformへの設定処理
     void SetMatrixUniform(const char* name, const Matrix4& matrix);
+    void SetVectorUniform(const char* name, const Vector3& vector);
+    void SetFloatUniform(const char* name, float value);
 
     // Uniform名
     static const char* UNIFORM_VIEW_PROJECTION_NAME;

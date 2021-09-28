@@ -61,6 +61,7 @@ private:
     const std::string ShaderPath = "../src/Shaders/"; // Mac + CLion
 
     // TODO 回転テスト
+    class Camera* mCamera;
     Actor* testActor;
     float testRot = 1.0f;
 

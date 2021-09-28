@@ -101,6 +101,10 @@ bool Mesh::Load(const std::string &filePath, Game* game)
             int vertexIndex = mesh->GetPolygonVertex(polIndex, polVertexIndex);
             std::vector<float> vertex = vertexList[vertexIndex];
 
+            // 法線座標の取得
+            FbxVector4 normalVec4;
+            mesh->GetPolygonVertexNormal(polIndex, polVertexIndex, normalVec4);
+
             // UV座標の取得
             FbxVector2 uvVec2;
             bool isUnMapped;
@@ -108,14 +112,21 @@ bool Mesh::Load(const std::string &filePath, Game* game)
 
             if (vertex.size() == 3)
             {
-                // UV座標未設定の場合、設定する
+                // 法線座標とUV座標が未設定の場合、設定する
+                vertex.push_back(normalVec4[0]);
+                vertex.push_back(normalVec4[1]);
+                vertex.push_back(normalVec4[2]);
                 vertex.push_back(uvVec2[0]);
                 vertex.push_back(uvVec2[1]);
                 vertexList[vertexIndex] = vertex;
             }
-            else if (!(fabs(vertex[3] - uvVec2[0] < FLT_EPSILON) && fabs(vertex[4] - uvVec2[1] < FLT_EPSILON)))
+            else if (!fabs(vertex[3] - normalVec4[0] < FLT_EPSILON)
+            || !fabs(vertex[4] - normalVec4[1] < FLT_EPSILON)
+            || !fabs(vertex[5] - normalVec4[2] < FLT_EPSILON)
+            || !fabs(vertex[6] - uvVec2[0] < FLT_EPSILON)
+            || !fabs(vertex[7] - uvVec2[1] < FLT_EPSILON))
             {
-                // ＊同一頂点インデックスの中でUV座標が異なる場合、
+                // ＊同一頂点インデックスの中で法線座標かUV座標が異なる場合、
                 // 新たな頂点インデックスとして作成する
 
                 // 作成済かどうか？
@@ -126,8 +137,11 @@ bool Mesh::Load(const std::string &filePath, Game* game)
                     int oldIndex = indexInfo[0];
                     int newIndex = indexInfo[1];
                     if (oldIndex == vertexIndex
-                    && fabs(vertexList[newIndex][3] - uvVec2[0] < FLT_EPSILON)
-                    && fabs(vertexList[newIndex][4] - uvVec2[1] < FLT_EPSILON))
+                    && fabs(vertexList[newIndex][3] - normalVec4[0] < FLT_EPSILON)
+                    && fabs(vertexList[newIndex][4] - normalVec4[1] < FLT_EPSILON)
+                    && fabs(vertexList[newIndex][5] - normalVec4[2] < FLT_EPSILON)
+                    && fabs(vertexList[newIndex][6] - uvVec2[0] < FLT_EPSILON)
+                    && fabs(vertexList[newIndex][7] - uvVec2[1] < FLT_EPSILON))
                     {
                         isCreated = true;
                         vertexIndex = newIndex;
@@ -142,6 +156,9 @@ bool Mesh::Load(const std::string &filePath, Game* game)
                     newPosVertex.push_back(vertex[0]);
                     newPosVertex.push_back(vertex[1]);
                     newPosVertex.push_back(vertex[2]);
+                    newPosVertex.push_back(normalVec4[0]);
+                    newPosVertex.push_back(normalVec4[1]);
+                    newPosVertex.push_back(normalVec4[2]);
                     newPosVertex.push_back(uvVec2[0]);
                     newPosVertex.push_back(uvVec2[1]);
                     vertexList.push_back(newPosVertex);
@@ -169,13 +186,13 @@ bool Mesh::Load(const std::string &filePath, Game* game)
         vertices[i*8+0] = vertex[0];
         vertices[i*8+1] = vertex[1];
         vertices[i*8+2] = vertex[2];
-        // TODO 法線座標の設定
-        vertices[i*8+3] = 0.0f;
-        vertices[i*8+4] = 0.0f;
-        vertices[i*8+5] = 0.0f;
+        // 法線座標
+        vertices[i*8+3] = vertex[3];
+        vertices[i*8+4] = vertex[4];
+        vertices[i*8+5] = vertex[5];
         // UV座標
-        vertices[i*8+6] = vertex[3];
-        vertices[i*8+7] = -vertex[4]; // V座標は反転させる
+        vertices[i*8+6] = vertex[6];
+        vertices[i*8+7] = -vertex[7]; // V座標は反転させる
 
         // TODO ログ出力
         for (int j = 0; j < 8; j++)

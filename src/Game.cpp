@@ -88,9 +88,10 @@ bool Game::InitSDL()
 // シェーダロード処理
 bool Game::LoadShaders()
 {
+    // Phongシェーダを読み込む
     mShader = new Shader();
-    if (!mShader->Load(ShaderPath + "SpriteVert.glsl",
-                       ShaderPath + "SpriteFrag.glsl")) // TODO
+    if (!mShader->Load(ShaderPath + "PhongVert.glsl",
+                       ShaderPath + "PhongFrag.glsl"))
     {
         return false;
     }
@@ -108,8 +109,8 @@ bool Game::LoadShaders()
 void Game::RunLoop()
 {
     // カメラ作成
-    auto* camera = new Camera(this);
-    camera->SetPosition(Vector3(0.0f, 0.0f, -450.0f));
+    mCamera = new Camera(this);
+    mCamera->SetPosition(Vector3(0.0f, 0.0f, -450.0f));
 
     // TODO アクタの作成
     testActor = new Actor(this);
@@ -218,6 +219,14 @@ void Game::GenerateOutput()
     mShader->SetActive();
     // カメラオブジェクトで変更されたビュー射影行列を再設定
     mShader->SetMatrixUniform(mShader->UNIFORM_VIEW_PROJECTION_NAME, mProjectionMatrix * mViewMatrix);
+
+    // ライティングのパラメータを設定
+    mShader->SetVectorUniform("uCameraPos", mCamera->GetPosition()); // TODO カメラ位置ではだめ？
+    mShader->SetVectorUniform("uAmbientColor", Vector3(0.35f, 0.35f, 0.35f));
+    mShader->SetFloatUniform("uSpecPower", 300.0f);
+    mShader->SetVectorUniform("uDirLight.mDirection", Vector3(0.3f, 0.3f, 0.8f));
+    mShader->SetVectorUniform("uDirLight.mDiffuseColor", Vector3(0.78f, 0.88f, 1.0f));
+    mShader->SetVectorUniform("uDirLight.mSpecColor", Vector3(0.8f, 0.8f, 0.8f));
 
     // Zバッファ有効、アルファブレンド無効
     glEnable(GL_DEPTH_TEST);

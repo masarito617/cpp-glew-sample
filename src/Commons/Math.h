@@ -21,6 +21,11 @@ public:
     ,z(inZ)
     {}
 
+    const float* GetAsFloatPtr() const
+    {
+        return reinterpret_cast<const float*>(&x);
+    }
+
     // operator calculate
     friend Vector3 operator+(const Vector3& a, const Vector3& b)
     {
