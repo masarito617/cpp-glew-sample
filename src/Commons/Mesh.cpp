@@ -120,11 +120,11 @@ bool Mesh::Load(const std::string &filePath, Game* game)
                 vertex.push_back(uvVec2[1]);
                 vertexList[vertexIndex] = vertex;
             }
-            else if (!fabs(vertex[3] - normalVec4[0] < FLT_EPSILON)
-            || !fabs(vertex[4] - normalVec4[1] < FLT_EPSILON)
-            || !fabs(vertex[5] - normalVec4[2] < FLT_EPSILON)
-            || !fabs(vertex[6] - uvVec2[0] < FLT_EPSILON)
-            || !fabs(vertex[7] - uvVec2[1] < FLT_EPSILON))
+            else if (fabs(vertex[3] - normalVec4[0]) >= FLT_EPSILON
+                     || fabs(vertex[4] - normalVec4[1]) >= FLT_EPSILON
+                     || fabs(vertex[5] - normalVec4[2]) >= FLT_EPSILON
+                     || fabs(vertex[6] - uvVec2[0]) >= FLT_EPSILON
+                     || fabs(vertex[7] - uvVec2[1]) >= FLT_EPSILON)
             {
                 // ＊同一頂点インデックスの中で法線座標かUV座標が異なる場合、
                 // 新たな頂点インデックスとして作成する
@@ -137,11 +137,11 @@ bool Mesh::Load(const std::string &filePath, Game* game)
                     int oldIndex = indexInfo[0];
                     int newIndex = indexInfo[1];
                     if (oldIndex == vertexIndex
-                    && fabs(vertexList[newIndex][3] - normalVec4[0] < FLT_EPSILON)
-                    && fabs(vertexList[newIndex][4] - normalVec4[1] < FLT_EPSILON)
-                    && fabs(vertexList[newIndex][5] - normalVec4[2] < FLT_EPSILON)
-                    && fabs(vertexList[newIndex][6] - uvVec2[0] < FLT_EPSILON)
-                    && fabs(vertexList[newIndex][7] - uvVec2[1] < FLT_EPSILON))
+                    && fabs(vertexList[newIndex][3] - normalVec4[0]) < FLT_EPSILON
+                    && fabs(vertexList[newIndex][4] - normalVec4[1]) < FLT_EPSILON
+                    && fabs(vertexList[newIndex][5] - normalVec4[2]) < FLT_EPSILON
+                    && fabs(vertexList[newIndex][6] - uvVec2[0]) < FLT_EPSILON
+                    && fabs(vertexList[newIndex][7] - uvVec2[1]) < FLT_EPSILON)
                     {
                         isCreated = true;
                         vertexIndex = newIndex;
@@ -175,6 +175,22 @@ bool Mesh::Load(const std::string &filePath, Game* game)
             vertexIndexList.push_back(vertexIndex);
         }
     }
+    // TODO ログ出力
+    std::cout << "-Vertex old, new" << std::endl;
+    for (auto newVertexIndex : newVertexIndexList)
+    {
+        std::cout << newVertexIndex[0] << ", " << newVertexIndex[1] << std::endl;
+    }
+    std::cout << std::endl;
+    std::cout << "-Index" << std::endl;
+    int tmp = 0;
+    for (auto index : vertexIndexList)
+    {
+        std::cout << index << ", ";
+        if (tmp % 3 == 2) std::cout << std::endl;
+        tmp++;
+    }
+    std::cout << std::endl;
 
     // 頂点座標配列の作成
     int vertexCount = vertexList.size();

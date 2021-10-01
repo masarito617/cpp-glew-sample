@@ -25,7 +25,7 @@ void Camera::ProcessInput(const uint8_t *state)
     Actor::ProcessInput(state);
 
     // TODO カメラ移動処理
-    float moveSpeed = 1.0f;
+    float moveSpeed = 10.0f;
     Vector3 pos = GetPosition();
     if (state[SDL_SCANCODE_A])
     {

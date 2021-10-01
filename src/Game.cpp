@@ -122,6 +122,9 @@ void Game::RunLoop()
     mesh->Load(AssetsPath + "saikoro.fbx", this);
     meshComp->SetMesh(mesh);
 
+    // ターゲット設定
+    // mCamera->SetTargetActor(testActor);
+
     while (mIsRunning)
     {
         ProcessInput();   // 入力検知
@@ -209,10 +212,7 @@ void Game::ProcessInput()
 void Game::GenerateOutput()
 {
     // 背景色をクリア
-    glClearColor(0.2f,
-                 0.2f,
-                 0.2f,
-                 1.0f);
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // シェーダをアクティブにする
