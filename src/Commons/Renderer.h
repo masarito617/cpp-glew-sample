@@ -38,7 +38,7 @@ private:
     Vector3 mDirLightDirection;    // 平行光源 向き
     Vector3 mDirLightDiffuseColor; // 平行光源 拡散反射色 kd
     Vector3 mDirLightSpecColor;    // 平行光源 鏡面反射色 ks
-    float mSpecColor;              // 鏡面反射指数 a
+    float mSpecPower;              // 鏡面反射指数 a
 
     std::vector<class SpriteComponent*> mSpriteComps; // アクタのスプライトリスト
     std::vector<class MeshComponent*> mMeshComps;     // アクタのメッシュリスト
@@ -47,5 +47,11 @@ private:
 
 public:
     void SetViewMatrix(const Matrix4& view) { mViewMatrix = view; }
+    class Camera* GetCamera() const { return mCamera; }
+    const Vector3& GetAmbientLight() const { return mAmbientLight; }
+    const Vector3& GetDirLightDirection() const { return mDirLightDirection; }
+    const Vector3& GetDirLightDiffuseColor() const { return mDirLightDiffuseColor; }
+    const Vector3& GetDirLightSpecColor() const { return mDirLightSpecColor; }
+    const float GetSpecPower() const { return mSpecPower; }
 
 };

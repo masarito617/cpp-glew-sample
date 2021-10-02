@@ -30,7 +30,7 @@ void SpriteComponent::Draw(Shader* shader)
                                                static_cast<float>(mTexture->GetHeight()),
                                                1.0f);
     Matrix4 world = mActor->GetWorldTransform() * scaleMatrix;
-    shader->SetMatrixUniform(shader->UNIFORM_WOULD_TRANSFORM_NAME, world);
+    shader->SetWorldTransformUniform(world);
 
     // テクスチャをアクティブにする
     mTexture->SetActive();

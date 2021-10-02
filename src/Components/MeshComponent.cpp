@@ -24,7 +24,7 @@ void MeshComponent::Draw(class Shader *shader)
 
     // シェーダにワールド座標を設定
     Matrix4 world = mActor->GetWorldTransform();
-    shader->SetMatrixUniform(shader->UNIFORM_WOULD_TRANSFORM_NAME, world);
+    shader->SetWorldTransformUniform(world);
 
     // テクスチャをアクティブにする
     Texture* texture = mMesh->GetTexture();

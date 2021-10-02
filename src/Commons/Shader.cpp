@@ -1,11 +1,10 @@
 #include "Shader.h"
 #include "../Game.h"
+#include "../Actors/Camera.h"
+#include "../Commons/Renderer.h"
 #include <SDL.h>
 #include <fstream>
 #include <sstream>
-
-const char* Shader::UNIFORM_VIEW_PROJECTION_NAME = "uViewProjection";
-const char* Shader::UNIFORM_WOULD_TRANSFORM_NAME = "uWorldTransform";
 
 Shader::Shader(const ShaderType type)
 :mType(type)
@@ -52,25 +51,6 @@ void Shader::SetActive()
 {
     // 作成したシェーダプログラムを使用
     glUseProgram(mShaderProgram);
-}
-
-void Shader::SetMatrixUniform(const char *name, const Matrix4 &matrix)
-{
-    // 指定された名前のuniformを設定
-    GLuint location = glGetUniformLocation(mShaderProgram, name);
-    glUniformMatrix4fv(location, 1, GL_TRUE, matrix.GetMatrixFloatPtr());
-}
-
-void Shader::SetVectorUniform(const char *name, const Vector3 &vector)
-{
-    GLuint location = glGetUniformLocation(mShaderProgram, name);
-    glUniform3fv(location, 1, vector.GetAsFloatPtr());
-}
-
-void Shader::SetFloatUniform(const char* name, float value)
-{
-    GLuint location = glGetUniformLocation(mShaderProgram, name);
-    glUniform1f(location, value);
 }
 
 bool Shader::CompileShader(const std::string& filePath, GLenum shaderType, GLuint& outShader)
@@ -131,7 +111,7 @@ bool Shader::IsValidProgram()
 
 std::string Shader::GetVertFileName() const
 {
-    std::string fileName = "BasicVert.glsl";
+    std::string fileName;
     switch (mType) {
         case ShaderType::BASIC:
             fileName = "BasicVert.glsl";
@@ -148,7 +128,7 @@ std::string Shader::GetVertFileName() const
 
 std::string Shader::GetFragFileName() const
 {
-    std::string fileName = "BasicFrag.glsl";
+    std::string fileName;
     switch (mType) {
         case ShaderType::BASIC:
             fileName = "BasicFrag.glsl";
@@ -161,4 +141,66 @@ std::string Shader::GetFragFileName() const
             break;
     }
     return fileName;
+}
+
+// ワールド座標uniform設定
+void Shader::SetWorldTransformUniform(Matrix4& would)
+{
+    switch (mType) {
+        case ShaderType::BASIC:
+        case ShaderType::SPRITE:
+        case ShaderType::PHONG:
+            SetMatrixUniform(UNIFORM_WOULD_TRANSFORM_NAME, would);
+            break;
+    }
+}
+
+// クリップ座標uniform設定
+void Shader::SetViewProjectionUniform(Matrix4& view, Matrix4& projection)
+{
+    switch (mType) {
+        case ShaderType::BASIC:
+        case ShaderType::SPRITE:
+            // 設定しない
+            break;
+        case ShaderType::PHONG:
+            SetMatrixUniform(UNIFORM_VIEW_PROJECTION_NAME, projection * view);
+            break;
+    }
+}
+
+// ライティングuniform設定
+void Shader::SetLightingUniform(Renderer* renderer)
+{
+    switch (mType) {
+        case ShaderType::BASIC:
+        case ShaderType::SPRITE:
+            // 設定しない
+            break;
+        case ShaderType::PHONG:
+            SetVectorUniform(UNIFORM_CAMERA_POS, renderer->GetCamera()->GetPosition());
+            SetVectorUniform(UNIFORM_AMBIENT_COLOR, renderer->GetAmbientLight());
+            SetVectorUniform(UNIFORM_DIR_LIGHT_DIRECTION, renderer->GetDirLightDirection());
+            SetVectorUniform(UNIFORM_DIR_LIGHT_DIFFUSE_COLOR, renderer->GetDirLightDiffuseColor());
+            SetVectorUniform(UNIFORM_DIR_LIGHT_SPEC_COLOR, renderer->GetDirLightSpecColor());
+            SetFloatUniform(UNIFORM_SPEC_POWER, renderer->GetSpecPower());
+            break;
+    }
+}
+
+// 指定された名前のuniformを設定
+void Shader::SetMatrixUniform(const char *name, const Matrix4 &matrix)
+{
+    GLuint location = glGetUniformLocation(mShaderProgram, name);
+    glUniformMatrix4fv(location, 1, GL_TRUE, matrix.GetMatrixFloatPtr());
+}
+void Shader::SetVectorUniform(const char *name, const Vector3 &vector)
+{
+    GLuint location = glGetUniformLocation(mShaderProgram, name);
+    glUniform3fv(location, 1, vector.GetAsFloatPtr());
+}
+void Shader::SetFloatUniform(const char* name, float value)
+{
+    GLuint location = glGetUniformLocation(mShaderProgram, name);
+    glUniform1f(location, value);
 }

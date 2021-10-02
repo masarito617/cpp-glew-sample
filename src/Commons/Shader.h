@@ -11,34 +11,35 @@ public:
     // シェーダタイプ
     enum ShaderType
     {
-        BASIC,  // 青色で出力
-        SPRITE, // テクスチャ付きで出力
-        PHONG,  // テクスチャ+フォン反射で出力
+        BASIC,  // テクスチャ無し（青色）
+        SPRITE, // テクスチャ付き
+        PHONG,  // テクスチャ+フォン反射
     };
 
     Shader(const ShaderType type);
     ~Shader();
 
-    // ロード処理
     bool Load(class Game* game);
     void Unload();
-
     void SetActive();
-
-    void SetLightingUniform();
-
-    // Uniformへの設定処理
-    void SetMatrixUniform(const char* name, const Matrix4& matrix);
-    void SetVectorUniform(const char* name, const Vector3& vector);
-    void SetFloatUniform(const char* name, float value);
 
     std::string GetVertFileName() const;
     std::string GetFragFileName() const;
 
-    // Uniform名
-    static const char* UNIFORM_VIEW_PROJECTION_NAME;
-    static const char* UNIFORM_WOULD_TRANSFORM_NAME;
+    // uniformへの設定処理
+    void SetWorldTransformUniform(class Matrix4& would); // ワールド座標
+    void SetViewProjectionUniform(class Matrix4& view, class Matrix4& projection); // クリップ座標
+    void SetLightingUniform(class Renderer* renderer);   // ライティング関連
 
+    // uniform名
+    const char* UNIFORM_VIEW_PROJECTION_NAME = "uViewProjection";
+    const char* UNIFORM_WOULD_TRANSFORM_NAME = "uWorldTransform";
+    const char* UNIFORM_CAMERA_POS = "uCameraPos";
+    const char* UNIFORM_AMBIENT_COLOR = "uAmbientColor";
+    const char* UNIFORM_DIR_LIGHT_DIRECTION     = "uDirLight.mDirection";
+    const char* UNIFORM_DIR_LIGHT_DIFFUSE_COLOR = "uDirLight.mDiffuseColor";
+    const char* UNIFORM_DIR_LIGHT_SPEC_COLOR = "uDirLight.mSpecColor";
+    const char* UNIFORM_SPEC_POWER = "uSpecPower";
 
 private:
     // コンパイル処理
@@ -51,6 +52,11 @@ private:
 
     // 頂点、フラグメントプログラムのリンクを確認
     bool IsValidProgram();
+
+    // uniformへの設定処理
+    void SetMatrixUniform(const char* name, const Matrix4& matrix);
+    void SetVectorUniform(const char* name, const Vector3& vector);
+    void SetFloatUniform(const char* name, float value);
 
     // シェーダタイプ
     ShaderType mType;

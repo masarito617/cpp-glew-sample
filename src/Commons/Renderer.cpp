@@ -90,18 +90,18 @@ bool Renderer::LoadData()
     mProjectionMatrix = Matrix4::CreatePerspectiveFOV(Math::ToRadians(50.0f),
                                                       mGame->ScreenWidth, mGame->ScreenHeight,
                                                       25.0f, 10000.0f);
-    mShader->SetMatrixUniform(mShader->UNIFORM_VIEW_PROJECTION_NAME, mProjectionMatrix * mViewMatrix);
+    mShader->SetViewProjectionUniform(mViewMatrix, mProjectionMatrix);
 
     // カメラ作成
     mCamera = new Camera(mGame);
     mCamera->SetPosition(Vector3(0.0f, 0.0f, -450.0f));
 
-    // ライティング設定
+    // ライティングパラメータ設定
     mAmbientLight = Vector3(0.35f, 0.35f, 0.35f);
     mDirLightDirection = Vector3(0.3f, 0.3f, 0.8f);
     mDirLightDiffuseColor = Vector3(0.78f, 0.88f, 1.0f);
     mDirLightSpecColor = Vector3(0.8f, 0.8f, 0.8f);
-    mSpecColor = 300.0f;
+    mSpecPower = 300.0f;
 
     return true;
 }
@@ -115,15 +115,9 @@ void Renderer::Draw()
     // シェーダをアクティブにする
     mShader->SetActive();
     // カメラオブジェクトで変更されたビュー射影行列を再設定
-    mShader->SetMatrixUniform(mShader->UNIFORM_VIEW_PROJECTION_NAME, mProjectionMatrix * mViewMatrix);
-
-    // ライティングのパラメータを設定
-    mShader->SetVectorUniform("uCameraPos", mCamera->GetPosition());
-    mShader->SetVectorUniform("uAmbientColor", mAmbientLight);
-    mShader->SetVectorUniform("uDirLight.mDirection", mDirLightDirection);
-    mShader->SetVectorUniform("uDirLight.mDiffuseColor", mDirLightDiffuseColor);
-    mShader->SetVectorUniform("uDirLight.mSpecColor", mDirLightSpecColor);
-    mShader->SetFloatUniform("uSpecPower", mSpecColor);
+    mShader->SetViewProjectionUniform(mViewMatrix, mProjectionMatrix);
+    // ライティングパラメータを設定
+    mShader->SetLightingUniform(this);
 
     // Zバッファ有効、アルファブレンド無効
     glEnable(GL_DEPTH_TEST);
