@@ -11,13 +11,13 @@ SpriteComponent::SpriteComponent(class Actor *actor, int drawOrder)
 ,mDrawOrder(drawOrder)
 {
     // 描画中のスプライトとして追加
-    mActor->GetGame()->AddSpriteComp(this);
+    mActor->GetGame()->GetRenderer()->AddSpriteComp(this);
 }
 
 SpriteComponent::~SpriteComponent()
 {
     // 描画中のスプライトから削除
-    mActor->GetGame()->RemoveSpriteComp(this);
+    mActor->GetGame()->GetRenderer()->RemoveSpriteComp(this);
 }
 
 void SpriteComponent::Draw(Shader* shader)

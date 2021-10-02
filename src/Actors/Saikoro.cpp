@@ -8,7 +8,7 @@ Saikoro::Saikoro(class Game *game)
 {
     // メッシュの設定
     auto* meshComp = new MeshComponent(this);
-    auto* mesh = game->GetMesh(game->GetAssetsPath() + "saikoro.fbx");
+    auto* mesh = game->GetRenderer()->GetMesh(game->GetAssetsPath() + "saikoro.fbx");
     meshComp->SetMesh(mesh);
 }
 

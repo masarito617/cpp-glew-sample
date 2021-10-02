@@ -66,7 +66,7 @@ bool Mesh::Load(const std::string &filePath, Game* game)
             fileName = FbxPathUtils::GetFileName(fileTexture->GetFileName());
         }
     }
-    mTexture = game->GetTexture(game->GetAssetsPath() + fileName);
+    mTexture = game->GetRenderer()->GetTexture(game->GetAssetsPath() + fileName);
 
     // UVセット名の取得
     FbxStringList uvSetNameList;

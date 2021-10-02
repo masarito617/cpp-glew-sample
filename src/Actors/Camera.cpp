@@ -17,7 +17,7 @@ void Camera::UpdateActor(float deltaTime)
     if (mTargetActor) target = mTargetActor->GetPosition() - GetPosition(); // ターゲットが設定されている場合
     Vector3 up = Math::VEC3_UNIT_Y;
     Matrix4 viewMatrix = Matrix4::CreateLookAt(position, target, up);
-    GetGame()->SetViewMatrix(viewMatrix);
+    GetGame()->GetRenderer()->SetViewMatrix(viewMatrix);
 }
 
 void Camera::ProcessInput(const uint8_t *state)

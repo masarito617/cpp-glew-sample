@@ -2,19 +2,11 @@
 #include "GL/glew.h"
 #include "SDL_image.h"
 #include "Actors/Actor.h"
-#include "Actors/Camera.h"
 #include "Actors/Saikoro.h"
-#include "Components/SpriteComponent.h"
-#include "Components/MeshComponent.h"
-#include "Commons/VertexArray.h"
-#include "Commons/Shader.h"
-#include "Commons/Texture.h"
-#include "Commons/Mesh.h"
+#include "Commons/Renderer.h"
 
 Game::Game()
-:mWindow(nullptr)
-,mShader(nullptr)
-,mTicksCount(0)
+:mTicksCount(0)
 ,mIsRunning(true)
 ,mUpdatingActors(false)
 {
@@ -23,100 +15,45 @@ Game::Game()
 // ゲーム初期化
 bool Game::Initialize()
 {
-    // SDL関連初期化
-    if (!InitSDL())
+    // レンダラー初期化
+    mRenderer = new Renderer(this);
+    if (!mRenderer->Initialize())
     {
-        SDL_Log("%s", SDL_GetError());
-        return false;
-    }
-
-    // GLEWの初期化
-    glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK) return false;
-    glGetError();
-
-    // シェーダのロード
-    if (!LoadShaders())
-    {
-        SDL_Log("failed load shaders.");
+        SDL_Log("Failed initialize renderer.");
+        delete mRenderer;
+        mRenderer = nullptr;
         return false;
     }
 
     // ゲーム時間取得
     mTicksCount = SDL_GetTicks();
 
-    return true;
-}
-
-// SDL関連初期化
-bool Game::InitSDL()
-{
-    // 初期化に失敗したらfalseを返す
-    bool success = SDL_Init(SDL_INIT_VIDEO|SDL_INIT_AUDIO) == 0;
-    if (!success) return false;
-
-    // OpenGL設定
-    // コアOpenGLプロファイル
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    // バージョン3.3を指定
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-    // RGBA各チャネル8ビットのカラーバッファ
-    SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-    // Zバッファのビット数
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-    // ダブルバッファ
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    // ハードウェアアクセラレーション
-    SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-
-    // OpenGLウィンドウの作成
-    mWindow = SDL_CreateWindow("OpenGLTest",
-                               100, 100, ScreenWidth, ScreenHeight,
-                               SDL_WINDOW_OPENGL);
-    if (!mWindow) return false;
-
-    // OpenGLコンテキストの作成
-    mContext = SDL_GL_CreateContext(mWindow);
-    if (!mContext) return false;
-
-    return true;
-}
-
-// シェーダロード処理
-bool Game::LoadShaders()
-{
-    // Phongシェーダを読み込む
-    mShader = new Shader(Shader::ShaderType::PHONG);
-    if (!mShader->Load(this))
+    if (!LoadData())
     {
+        SDL_Log("failed load data.");
         return false;
     }
-    mShader->SetActive();
 
-    // ビュー射影座標を設定(View*Projectionの逆算)
-    mViewMatrix = Matrix4::CreateLookAt(Math::VEC3_ZERO, Math::VEC3_UNIT_Z, Math::VEC3_UNIT_Y); // カメラ無しの初期値
-    mProjectionMatrix = Matrix4::CreatePerspectiveFOV(Math::ToRadians(50.0f), ScreenWidth, ScreenHeight,
-                                                      25.0f, 10000.0f);
-    mShader->SetMatrixUniform(mShader->UNIFORM_VIEW_PROJECTION_NAME, mProjectionMatrix * mViewMatrix);
     return true;
 }
 
-// ゲームループ処理
-void Game::RunLoop()
+// データロード処理
+bool Game::LoadData()
 {
-    // カメラ作成
-    mCamera = new Camera(this);
-    mCamera->SetPosition(Vector3(0.0f, 0.0f, -450.0f));
+    // レンダラーデータロード
+    if (!mRenderer->LoadData()) return false;
 
     // アクタ作成
     auto* saikoro = new Saikoro(this);
     saikoro->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
     saikoro->SetScale(Vector3(100.0f, 100.0f, 100.0f));
 
+    return true;
+}
+
+// ゲームループ処理
+void Game::RunLoop()
+{
     while (mIsRunning)
     {
         ProcessInput();   // 入力検知
@@ -199,44 +136,7 @@ void Game::ProcessInput()
 // ゲームループ 出力処理
 void Game::GenerateOutput()
 {
-    // 背景色をクリア
-    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // シェーダをアクティブにする
-    mShader->SetActive();
-    // カメラオブジェクトで変更されたビュー射影行列を再設定
-    mShader->SetMatrixUniform(mShader->UNIFORM_VIEW_PROJECTION_NAME, mProjectionMatrix * mViewMatrix);
-
-    // ライティングのパラメータを設定
-    mShader->SetVectorUniform("uCameraPos", mCamera->GetPosition());
-    mShader->SetVectorUniform("uAmbientColor", Vector3(0.35f, 0.35f, 0.35f));
-    mShader->SetFloatUniform("uSpecPower", 300.0f);
-    mShader->SetVectorUniform("uDirLight.mDirection", Vector3(0.3f, 0.3f, 0.8f));
-    mShader->SetVectorUniform("uDirLight.mDiffuseColor", Vector3(0.78f, 0.88f, 1.0f));
-    mShader->SetVectorUniform("uDirLight.mSpecColor", Vector3(0.8f, 0.8f, 0.8f));
-
-    // Zバッファ有効、アルファブレンド無効
-    glEnable(GL_DEPTH_TEST);
-    glDisable(GL_BLEND);
-    // メッシュ描画
-    for (auto meshComp : mMeshComps)
-    {
-        meshComp->Draw(mShader);
-    }
-
-    // Zバッファ無効、アルファブレンド有効
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    // TODO スプライト描画
-//    for (auto sprite : mSprites)
-//    {
-//        sprite->Draw(mShader);
-//    }
-
-    // バックバッファとスワップ(ダブルバッファ)
-    SDL_GL_SwapWindow(mWindow);
+    mRenderer->Draw();
 }
 
 // シャットダウン処理
@@ -247,31 +147,8 @@ void Game::Shutdown()
     {
         delete mActors.back();
     }
-
-    // テクスチャを破棄
-    for (auto i : mCachedTextures)
-    {
-        i.second->Unload();
-        delete i.second;
-    }
-    mCachedTextures.clear();
-
-    // メッシュを破棄
-    for (auto i : mCachedMeshes)
-    {
-        i.second->Unload();
-        delete i.second;
-    }
-    mCachedMeshes.clear();
-
-    // シェーダの破棄
-    mShader->Unload();
-    delete mShader;
-
-    // SDL関連の変数を破棄
-    SDL_GL_DeleteContext(mContext);
-    SDL_DestroyWindow(mWindow);
-    SDL_Quit();
+    // レンダラー破棄
+    mRenderer->ShutDown();
 }
 
 // アクタ追加・削除処理
@@ -294,79 +171,4 @@ void Game::RemoveActor(Actor* actor)
     {
         mActors.erase(iter);
     }
-}
-
-// スプライトコンポーネント追加・削除処理
-void Game::AddSpriteComp(SpriteComponent* sprite)
-{
-    // 描画順にソートして追加
-    int myDrawOrder = sprite->GetDrawOrder();
-    auto iter = mSpriteComps.begin();
-    for (; iter != mSpriteComps.end(); ++iter)
-    {
-        if (myDrawOrder < (*iter)->GetDrawOrder())
-        {
-            break;
-        }
-    }
-    mSpriteComps.insert(iter, sprite);
-}
-void Game::RemoveSpriteComp(SpriteComponent* sprite)
-{
-    auto iter = std::find(mSpriteComps.begin(), mSpriteComps.end(), sprite);
-    mSpriteComps.erase(iter);
-}
-
-// メッシュコンポーネント追加・削除処理
-void Game::AddMeshComp(class MeshComponent* mesh)
-{
-    mMeshComps.emplace_back(mesh);
-}
-void Game::RemoveMeshComp(class MeshComponent* mesh)
-{
-    auto iter = std::find(mMeshComps.begin(), mMeshComps.end(), mesh);
-    mMeshComps.erase(iter);
-}
-
-// テクスチャロード処理
-Texture* Game::GetTexture(const std::string &filePath)
-{
-    // キャッシュ済なら返却
-    auto iter = mCachedTextures.find(filePath);
-    if (iter != mCachedTextures.end()) return iter->second;
-
-    // テクスチャをロードする
-    Texture* texture = nullptr;
-    texture = new Texture();
-    if (texture->Load(filePath))
-    {
-        mCachedTextures.emplace(filePath, texture);
-    }
-    else
-    {
-        delete texture;
-        texture = nullptr;
-    }
-    return texture;
-}
-
-// メッシュロード処理
-Mesh* Game::GetMesh(const std::string &filePath)
-{
-    // キャッシュ済なら返却
-    auto iter = mCachedMeshes.find(filePath);
-    if (iter != mCachedMeshes.end()) return iter->second;
-
-    Mesh* mesh = nullptr;
-    mesh = new Mesh();
-    if (mesh->Load(filePath, this))
-    {
-        mCachedMeshes.emplace(filePath, mesh);
-    }
-    else
-    {
-        delete mesh;
-        mesh = nullptr;
-    }
-    return mesh;
 }

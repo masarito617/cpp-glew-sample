@@ -20,8 +20,8 @@ Shader::~Shader()
 bool Shader::Load(Game* game)
 {
     // コンパイルを行う
-    if (!CompileShader(game->GetAssetsPath() + GetVertFileName(), GL_VERTEX_SHADER, mVertexShader)
-    || !CompileShader(game->GetAssetsPath() + GetFragFileName(), GL_FRAGMENT_SHADER, mFragShader))
+    if (!CompileShader(game->GetShaderPath() + GetVertFileName(), GL_VERTEX_SHADER, mVertexShader)
+    || !CompileShader(game->GetShaderPath() + GetFragFileName(), GL_FRAGMENT_SHADER, mFragShader))
     {
         return false;
     }
