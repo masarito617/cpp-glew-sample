@@ -1,4 +1,5 @@
 #include "Shader.h"
+#include "../Game.h"
 #include <SDL.h>
 #include <fstream>
 #include <sstream>
@@ -6,8 +7,9 @@
 const char* Shader::UNIFORM_VIEW_PROJECTION_NAME = "uViewProjection";
 const char* Shader::UNIFORM_WOULD_TRANSFORM_NAME = "uWorldTransform";
 
-Shader::Shader()
-:mShaderProgram(0)
+Shader::Shader(const ShaderType type)
+:mType(type)
+,mShaderProgram(0)
 ,mVertexShader(0)
 ,mFragShader(0)
 {}
@@ -15,11 +17,11 @@ Shader::Shader()
 Shader::~Shader()
 {}
 
-bool Shader::Load(const std::string &vertFilePath, const std::string &fragFilePath)
+bool Shader::Load(Game* game)
 {
     // コンパイルを行う
-    if (!CompileShader(vertFilePath, GL_VERTEX_SHADER, mVertexShader)
-    || !CompileShader(fragFilePath, GL_FRAGMENT_SHADER, mFragShader))
+    if (!CompileShader(game->GetAssetsPath() + GetVertFileName(), GL_VERTEX_SHADER, mVertexShader)
+    || !CompileShader(game->GetAssetsPath() + GetFragFileName(), GL_FRAGMENT_SHADER, mFragShader))
     {
         return false;
     }
@@ -125,4 +127,38 @@ bool Shader::IsValidProgram()
         return false;
     }
     return true;
+}
+
+std::string Shader::GetVertFileName() const
+{
+    std::string fileName = "BasicVert.glsl";
+    switch (mType) {
+        case ShaderType::BASIC:
+            fileName = "BasicVert.glsl";
+            break;
+        case ShaderType::SPRITE:
+            fileName = "SpriteVert.glsl";
+            break;
+        case ShaderType::PHONG:
+            fileName = "PhongVert.glsl";
+            break;
+    }
+    return fileName;
+}
+
+std::string Shader::GetFragFileName() const
+{
+    std::string fileName = "BasicFrag.glsl";
+    switch (mType) {
+        case ShaderType::BASIC:
+            fileName = "BasicFrag.glsl";
+            break;
+        case ShaderType::SPRITE:
+            fileName = "SpriteFrag.glsl";
+            break;
+        case ShaderType::PHONG:
+            fileName = "PhongFrag.glsl";
+            break;
+    }
+    return fileName;
 }

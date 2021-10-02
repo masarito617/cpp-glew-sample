@@ -90,9 +90,8 @@ bool Game::InitSDL()
 bool Game::LoadShaders()
 {
     // Phongシェーダを読み込む
-    mShader = new Shader();
-    if (!mShader->Load(ShaderPath + "PhongVert.glsl",
-                       ShaderPath + "PhongFrag.glsl"))
+    mShader = new Shader(Shader::ShaderType::PHONG);
+    if (!mShader->Load(this))
     {
         return false;
     }

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 project(OpenGLTest)
 
 set(CMAKE_CXX_STANDARD 14)
-add_executable(OpenGLTest src/main.cpp src/Game.cpp src/Game.h src/Components/Component.cpp src/Components/Component.h src/Actors/Actor.cpp src/Actors/Actor.h src/Components/SpriteComponent.cpp src/Components/SpriteComponent.h src/Commons/Math.h src/Commons/VertexArray.cpp src/Commons/VertexArray.h src/Commons/Shader.cpp src/Commons/Shader.h src/Commons/Texture.cpp src/Commons/Texture.h src/Commons/Mesh.cpp src/Commons/Mesh.h src/Components/MeshComponent.cpp src/Components/MeshComponent.h src/Actors/Camera.cpp src/Actors/Camera.h src/Actors/Saikoro.cpp src/Actors/Saikoro.h)
+add_executable(OpenGLTest src/main.cpp src/Game.cpp src/Game.h src/Components/Component.cpp src/Components/Component.h src/Actors/Actor.cpp src/Actors/Actor.h src/Components/SpriteComponent.cpp src/Components/SpriteComponent.h src/Commons/Math.h src/Commons/VertexArray.cpp src/Commons/VertexArray.h src/Commons/Shader.cpp src/Commons/Shader.h src/Commons/Texture.cpp src/Commons/Texture.h src/Commons/Mesh.cpp src/Commons/Mesh.h src/Components/MeshComponent.cpp src/Components/MeshComponent.h src/Actors/Camera.cpp src/Actors/Camera.h src/Actors/Saikoro.cpp src/Actors/Saikoro.h src/Commons/Renderer.cpp src/Commons/Renderer.h)
 
 # SDL2のパスを設定
 # 自身の環境に合わせて書き換えるべし
