@@ -77,8 +77,9 @@ bool Renderer::InitSDL()
 
 bool Renderer::LoadData()
 {
-    // Phongシェーダを読み込む
-    mShader = new Shader(Shader::ShaderType::PHONG);
+    // TODO メッシュごとにシェーダを持つようにする
+    // シェーダを読み込む
+    mShader = new Shader(Shader::ShaderType::BASIC);
     if (!mShader->Load(mGame))
     {
         return false;
@@ -112,6 +113,7 @@ void Renderer::Draw()
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // TODO メッシュごとにシェーダを持つようにする
     // シェーダをアクティブにする
     mShader->SetActive();
     // カメラオブジェクトで変更されたビュー射影行列を再設定

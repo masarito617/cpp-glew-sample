@@ -146,27 +146,13 @@ std::string Shader::GetFragFileName() const
 // ワールド座標uniform設定
 void Shader::SetWorldTransformUniform(Matrix4& would)
 {
-    switch (mType) {
-        case ShaderType::BASIC:
-        case ShaderType::SPRITE:
-        case ShaderType::PHONG:
-            SetMatrixUniform(UNIFORM_WOULD_TRANSFORM_NAME, would);
-            break;
-    }
+    SetMatrixUniform(UNIFORM_WOULD_TRANSFORM_NAME, would);
 }
 
 // クリップ座標uniform設定
 void Shader::SetViewProjectionUniform(Matrix4& view, Matrix4& projection)
 {
-    switch (mType) {
-        case ShaderType::BASIC:
-        case ShaderType::SPRITE:
-            // 設定しない
-            break;
-        case ShaderType::PHONG:
-            SetMatrixUniform(UNIFORM_VIEW_PROJECTION_NAME, projection * view);
-            break;
-    }
+    SetMatrixUniform(UNIFORM_VIEW_PROJECTION_NAME, projection * view);
 }
 
 // ライティングuniform設定
