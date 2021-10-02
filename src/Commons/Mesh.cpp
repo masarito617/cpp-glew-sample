@@ -5,7 +5,6 @@
 #include <SDL.h>
 #include <iostream>
 #include <vector>
-#include <map>
 
 Mesh::Mesh()
 :mVertexArray(nullptr)
@@ -51,7 +50,7 @@ bool Mesh::Load(const std::string &filePath, Game* game)
     }
 
     // テクスチャの読込
-    // ＊現状１つしか読み込めない
+    // ＊現在の実装だと１つしか読み込めない
     std::string fileName = "default_tex.png";
     int materialCount = scene->GetMaterialCount();
     if (materialCount > 0)
@@ -175,6 +174,7 @@ bool Mesh::Load(const std::string &filePath, Game* game)
             vertexIndexList.push_back(vertexIndex);
         }
     }
+
     // TODO ログ出力
     std::cout << "-Vertex old, new" << std::endl;
     for (auto newVertexIndex : newVertexIndexList)

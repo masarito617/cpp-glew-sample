@@ -19,13 +19,14 @@ public:
     void AddActor(class Actor* actor);    // アクタ追加
     void RemoveActor(class Actor* actor); // アクタ削除
 
-    void AddSprite(class SpriteComponent* sprite);    // アクタのスプライトを追加
-    void RemoveSprite(class SpriteComponent* sprite); // アクタのスプライトを削除
+    void AddSpriteComp(class SpriteComponent* sprite);    // アクタのスプライトを追加
+    void RemoveSpriteComp(class SpriteComponent* sprite); // アクタのスプライトを削除
 
-    void AddMesh(class MeshComponent* mesh);    // アクタのメッシュを追加
-    void RemoveMesh(class MeshComponent* mesh); // アクタのメッシュを削除
+    void AddMeshComp(class MeshComponent* mesh);    // アクタのメッシュを追加
+    void RemoveMeshComp(class MeshComponent* mesh); // アクタのメッシュを削除
 
     class Texture* GetTexture(const std::string& filePath); // テクスチャ取得処理
+    class Mesh* GetMesh(const std::string& filePath);       // メッシュ取得処理
 
     constexpr static const float ScreenWidth  = 1024.0f; // スクリーン横幅
     constexpr static const float ScreenHeight = 768.0f;  // スクリーン縦幅
@@ -39,9 +40,10 @@ private:
 
     std::vector<class Actor*> mActors;            // アクタリスト
     std::vector<class Actor*> mPendingActors;     // 待機中のアクタリスト
-    std::vector<class SpriteComponent*> mSprites; // アクタのスプライトリスト
-    std::vector<class MeshComponent*> mMeshes;    // アクタのメッシュリスト
+    std::vector<class SpriteComponent*> mSpriteComps; // アクタのスプライトリスト
+    std::vector<class MeshComponent*> mMeshComps;     // アクタのメッシュリスト
     std::unordered_map<std::string, class Texture*> mCachedTextures; // キャッシュ済テクスチャリスト
+    std::unordered_map<std::string, class Mesh*> mCachedMeshes;      // キャッシュ済メッシュリスト
 
     class Shader* mShader;     // シェーダ
     Matrix4 mViewMatrix;       // ビュー変換行列
@@ -60,10 +62,8 @@ private:
     // シェーダーパス
     const std::string ShaderPath = "../src/Shaders/"; // Mac + CLion
 
-    // TODO 回転テスト
+    // カメラ
     class Camera* mCamera;
-    Actor* testActor;
-    float testRot = 1.0f;
 
 public:
     // getter, setter

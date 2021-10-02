@@ -20,6 +20,7 @@ void main() {
 
     // テクスチャ情報を設定
     fragTexCoord = inTexCoord;
+    // ワールド座標に変換する
     fragNormal = (uWorldTransform * vec4(inNormal, 0.0f)).xyz;
     fragWorldPos = (uWorldTransform * pos).xyz;
 }

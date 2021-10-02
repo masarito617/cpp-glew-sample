@@ -3,6 +3,7 @@
 #include "SDL_image.h"
 #include "Actors/Actor.h"
 #include "Actors/Camera.h"
+#include "Actors/Saikoro.h"
 #include "Components/SpriteComponent.h"
 #include "Components/MeshComponent.h"
 #include "Commons/VertexArray.h"
@@ -112,18 +113,10 @@ void Game::RunLoop()
     mCamera = new Camera(this);
     mCamera->SetPosition(Vector3(0.0f, 0.0f, -450.0f));
 
-    // TODO アクタの作成
-    testActor = new Actor(this);
-    testActor->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
-    testActor->SetScale(Vector3(100.0f, 100.0f, 100.0f));
-    // メッシュ設定
-    auto* meshComp = new MeshComponent(testActor);
-    auto* mesh = new Mesh();
-    mesh->Load(AssetsPath + "saikoro.fbx", this);
-    meshComp->SetMesh(mesh);
-
-    // ターゲット設定
-    // mCamera->SetTargetActor(testActor);
+    // アクタ作成
+    auto* saikoro = new Saikoro(this);
+    saikoro->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
+    saikoro->SetScale(Vector3(100.0f, 100.0f, 100.0f));
 
     while (mIsRunning)
     {
@@ -174,10 +167,6 @@ void Game::Update()
     {
         delete actor;
     }
-
-    // TODO 回転テスト
-    testActor->SetRotationX(Math::ToRadians(testRot));
-    testActor->SetRotationZ(Math::ToRadians(testRot));
 }
 
 // ゲームループ 入力検知
@@ -221,7 +210,7 @@ void Game::GenerateOutput()
     mShader->SetMatrixUniform(mShader->UNIFORM_VIEW_PROJECTION_NAME, mProjectionMatrix * mViewMatrix);
 
     // ライティングのパラメータを設定
-    mShader->SetVectorUniform("uCameraPos", mCamera->GetPosition()); // TODO カメラ位置ではだめ？
+    mShader->SetVectorUniform("uCameraPos", mCamera->GetPosition());
     mShader->SetVectorUniform("uAmbientColor", Vector3(0.35f, 0.35f, 0.35f));
     mShader->SetFloatUniform("uSpecPower", 300.0f);
     mShader->SetVectorUniform("uDirLight.mDirection", Vector3(0.3f, 0.3f, 0.8f));
@@ -232,9 +221,9 @@ void Game::GenerateOutput()
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
     // メッシュ描画
-    for (auto mesh : mMeshes)
+    for (auto meshComp : mMeshComps)
     {
-        mesh->Draw(mShader);
+        meshComp->Draw(mShader);
     }
 
     // Zバッファ無効、アルファブレンド有効
@@ -268,6 +257,14 @@ void Game::Shutdown()
     }
     mCachedTextures.clear();
 
+    // メッシュを破棄
+    for (auto i : mCachedMeshes)
+    {
+        i.second->Unload();
+        delete i.second;
+    }
+    mCachedMeshes.clear();
+
     // シェーダの破棄
     mShader->Unload();
     delete mShader;
@@ -278,7 +275,7 @@ void Game::Shutdown()
     SDL_Quit();
 }
 
-// アクタ追加処理
+// アクタ追加・削除処理
 void Game::AddActor(Actor* actor)
 {
     // アクタ更新中ならPendingに格納
@@ -286,8 +283,6 @@ void Game::AddActor(Actor* actor)
     ? mPendingActors.emplace_back(actor)
     : mActors.emplace_back(actor);
 }
-
-// アクタ削除処理
 void Game::RemoveActor(Actor* actor)
 {
     auto iter = std::find(mPendingActors.begin(), mPendingActors.end(), actor);
@@ -302,40 +297,36 @@ void Game::RemoveActor(Actor* actor)
     }
 }
 
-// スプライト追加処理
-void Game::AddSprite(SpriteComponent* sprite)
+// スプライトコンポーネント追加・削除処理
+void Game::AddSpriteComp(SpriteComponent* sprite)
 {
     // 描画順にソートして追加
     int myDrawOrder = sprite->GetDrawOrder();
-    auto iter = mSprites.begin();
-    for (; iter != mSprites.end(); ++iter)
+    auto iter = mSpriteComps.begin();
+    for (; iter != mSpriteComps.end(); ++iter)
     {
         if (myDrawOrder < (*iter)->GetDrawOrder())
         {
             break;
         }
     }
-    mSprites.insert(iter, sprite);
+    mSpriteComps.insert(iter, sprite);
+}
+void Game::RemoveSpriteComp(SpriteComponent* sprite)
+{
+    auto iter = std::find(mSpriteComps.begin(), mSpriteComps.end(), sprite);
+    mSpriteComps.erase(iter);
 }
 
-// スプライト削除処理
-void Game::RemoveSprite(SpriteComponent* sprite)
+// メッシュコンポーネント追加・削除処理
+void Game::AddMeshComp(class MeshComponent* mesh)
 {
-    auto iter = std::find(mSprites.begin(), mSprites.end(), sprite);
-    mSprites.erase(iter);
+    mMeshComps.emplace_back(mesh);
 }
-
-// メッシュを追加
-void Game::AddMesh(class MeshComponent* mesh)
+void Game::RemoveMeshComp(class MeshComponent* mesh)
 {
-    mMeshes.emplace_back(mesh);
-}
-
-// メッシュを削除
-void Game::RemoveMesh(class MeshComponent* mesh)
-{
-    auto iter = std::find(mMeshes.begin(), mMeshes.end(), mesh);
-    mMeshes.erase(iter);
+    auto iter = std::find(mMeshComps.begin(), mMeshComps.end(), mesh);
+    mMeshComps.erase(iter);
 }
 
 // テクスチャロード処理
@@ -343,10 +334,7 @@ Texture* Game::GetTexture(const std::string &filePath)
 {
     // キャッシュ済なら返却
     auto iter = mCachedTextures.find(filePath);
-    if (iter != mCachedTextures.end())
-    {
-        return iter->second;
-    }
+    if (iter != mCachedTextures.end()) return iter->second;
 
     // テクスチャをロードする
     Texture* texture = nullptr;
@@ -361,4 +349,25 @@ Texture* Game::GetTexture(const std::string &filePath)
         texture = nullptr;
     }
     return texture;
+}
+
+// メッシュロード処理
+Mesh* Game::GetMesh(const std::string &filePath)
+{
+    // キャッシュ済なら返却
+    auto iter = mCachedMeshes.find(filePath);
+    if (iter != mCachedMeshes.end()) return iter->second;
+
+    Mesh* mesh = nullptr;
+    mesh = new Mesh();
+    if (mesh->Load(filePath, this))
+    {
+        mCachedMeshes.emplace(filePath, mesh);
+    }
+    else
+    {
+        delete mesh;
+        mesh = nullptr;
+    }
+    return mesh;
 }

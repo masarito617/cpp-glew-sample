@@ -10,12 +10,12 @@ MeshComponent::MeshComponent(class Actor *actor)
 : Component(actor)
 , mMesh(nullptr)
 {
-    mActor->GetGame()->AddMesh(this);
+    mActor->GetGame()->AddMeshComp(this);
 }
 
 MeshComponent::~MeshComponent()
 {
-    mActor->GetGame()->RemoveMesh(this);
+    mActor->GetGame()->RemoveMeshComp(this);
 }
 
 void MeshComponent::Draw(class Shader *shader)

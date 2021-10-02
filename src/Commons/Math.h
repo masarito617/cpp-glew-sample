@@ -3,6 +3,61 @@
 #include <cmath>
 #include <iostream>
 
+// *計算処理をまとめたライブラリ
+
+// 二次元ベクトル
+class Vector2
+{
+public:
+    float x, y;
+
+    Vector2()
+    :x(0.0f)
+    ,y(0.0f)
+    {}
+
+    Vector2(float inX, float inY)
+    :x(inX)
+    ,y(inY)
+    {}
+
+    // operator calculate
+    friend Vector2 operator+(const Vector2& a, const Vector2& b)
+    {
+        return Vector2(a.x + b.x, a.y + b.y);
+    }
+    friend Vector2 operator-(const Vector2& a, const Vector2& b)
+    {
+        return Vector2(a.x - b.x, a.y - b.y);
+    }
+    friend Vector2 operator*(const Vector2& a, const Vector2& b)
+    {
+        return Vector2(a.x * b.x, a.y * b.y);
+    }
+    friend Vector2 operator*(float scalar, const Vector2& vec)
+    {
+        return Vector2(vec.x * scalar, vec.y * scalar);
+    }
+    Vector2& operator+=(const Vector2& vec)
+    {
+        x += vec.x;
+        y += vec.y;
+        return *this;
+    }
+    Vector2& operator-=(const Vector2& vec)
+    {
+        x -= vec.x;
+        y -= vec.y;
+        return *this;
+    }
+
+    // ベクトルの長さ
+    float Length() const
+    {
+        return (sqrtf(x*x + y*y));
+    }
+};
+
 // 三次元ベクトル
 class Vector3
 {
@@ -93,7 +148,6 @@ public:
 };
 
 // クォータニオン
-//
 class Quaternion
 {
 public:
@@ -406,6 +460,8 @@ namespace Math
         return dist(Math::randomEngine);
     }
 
+    // vec2
+    static const Vector2 VEC2_ZERO   = Vector2(0.0f, 0.0f);
     // vec3
     static const Vector3 VEC3_ZERO   = Vector3(0.0f, 0.0f, 0.0f);
     static const Vector3 VEC3_UNIT   = Vector3(1.0f, 1.0f, 1.0f);
