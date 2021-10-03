@@ -1,8 +1,7 @@
 #include "SpriteComponent.h"
-#include "GL/glew.h"
+#include <GL/glew.h>
 #include "../Game.h"
 #include "../Actors/Actor.h"
-#include "../Commons/Shader.h"
 #include "../Commons/Texture.h"
 
 SpriteComponent::SpriteComponent(class Actor *actor, int drawOrder)

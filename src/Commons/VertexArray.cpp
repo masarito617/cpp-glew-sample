@@ -1,5 +1,5 @@
 #include "VertexArray.h"
-#include "GL/glew.h"
+#include <GL/glew.h>
 
 VertexArray::VertexArray(const float *vertices,
                          unsigned int numVertices,

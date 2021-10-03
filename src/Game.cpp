@@ -1,6 +1,6 @@
 #include "Game.h"
-#include "GL/glew.h"
-#include "SDL_image.h"
+#include <GL/glew.h>
+#include <SDL_image.h>
 #include "Actors/Actor.h"
 #include "Actors/Saikoro.h"
 #include "Commons/Renderer.h"

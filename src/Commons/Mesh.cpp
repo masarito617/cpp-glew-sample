@@ -1,10 +1,10 @@
 #include "Mesh.h"
-#include "VertexArray.h"
-#include "../Game.h"
 #include <fbxsdk.h>
 #include <SDL.h>
 #include <iostream>
 #include <vector>
+#include "../Game.h"
+#include "VertexArray.h"
 
 Mesh::Mesh()
 :mVertexArray(nullptr)
