@@ -3,13 +3,15 @@
 #include "../Commons/Mesh.h"
 #include "../Components/MeshComponent.h"
 
-Saikoro::Saikoro(class Game *game)
+Saikoro::Saikoro(class Game *game, Shader::ShaderType type)
 : Actor(game)
 {
-    // メッシュの設定
+    // メッシュ、シェーダの設定
     auto* meshComp = new MeshComponent(this);
     auto* mesh = game->GetRenderer()->GetMesh(game->GetAssetsPath() + "saikoro.fbx");
     meshComp->SetMesh(mesh);
+    auto* shader = game->GetRenderer()->GetShader(type);
+    meshComp->SetShader(shader);
 }
 
 void Saikoro::UpdateActor(float deltaTime)

@@ -95,11 +95,6 @@ void Actor::CalculateWouldTransform()
         mWorldTransform = Matrix4::CreateTranslation(mPosition.x, mPosition.y, mPosition.z);
         mWorldTransform *= Matrix4::CreateQuaternion(mRotation);
         mWorldTransform *= Matrix4::CreateScale(mScale.x, mScale.y, mScale.z);
-        // TODO ログ出力
-        Matrix4::CreateScale(mScale.x, mScale.y, mScale.z).PrintMatrix();
-        Matrix4::CreateQuaternion(mRotation).PrintMatrix();
-        Matrix4::CreateTranslation(mPosition.x, mPosition.y, mPosition.z).PrintMatrix();
-        mWorldTransform.PrintMatrix();
     }
 }
 

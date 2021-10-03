@@ -12,7 +12,7 @@ public:
     enum ShaderType
     {
         BASIC,  // テクスチャ無し（青色）
-        SPRITE, // テクスチャ付き
+        SPRITE, // テクスチャ有り
         PHONG,  // テクスチャ+フォン反射
     };
 
@@ -27,9 +27,10 @@ public:
     std::string GetFragFileName() const;
 
     // uniformへの設定処理
-    void SetWorldTransformUniform(class Matrix4& would); // ワールド座標
-    void SetViewProjectionUniform(class Matrix4& view, class Matrix4& projection); // クリップ座標
-    void SetLightingUniform(class Renderer* renderer);   // ライティング関連
+    void SetWorldTransformUniform(const class Matrix4& would);      // ワールド座標
+    void SetViewProjectionUniform(const class Matrix4& view,
+                                  const class Matrix4& projection); // クリップ座標
+    void SetLightingUniform(const class Renderer* renderer);        // ライティング関連
 
     // uniform名
     const char* UNIFORM_VIEW_PROJECTION_NAME = "uViewProjection";

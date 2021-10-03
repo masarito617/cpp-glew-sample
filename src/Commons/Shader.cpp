@@ -1,10 +1,9 @@
 #include "Shader.h"
-#include "../Game.h"
-#include "../Actors/Camera.h"
-#include "../Commons/Renderer.h"
 #include <SDL.h>
 #include <fstream>
 #include <sstream>
+#include "../Game.h"
+#include "../Actors/Camera.h"
 
 Shader::Shader(const ShaderType type)
 :mType(type)
@@ -144,19 +143,19 @@ std::string Shader::GetFragFileName() const
 }
 
 // ワールド座標uniform設定
-void Shader::SetWorldTransformUniform(Matrix4& would)
+void Shader::SetWorldTransformUniform(const Matrix4& would)
 {
     SetMatrixUniform(UNIFORM_WOULD_TRANSFORM_NAME, would);
 }
 
 // クリップ座標uniform設定
-void Shader::SetViewProjectionUniform(Matrix4& view, Matrix4& projection)
+void Shader::SetViewProjectionUniform(const Matrix4& view, const Matrix4& projection)
 {
-    SetMatrixUniform(UNIFORM_VIEW_PROJECTION_NAME, projection * view);
+    SetMatrixUniform(UNIFORM_VIEW_PROJECTION_NAME, projection * view); // view*projectionの逆算
 }
 
 // ライティングuniform設定
-void Shader::SetLightingUniform(Renderer* renderer)
+void Shader::SetLightingUniform(const Renderer* renderer)
 {
     switch (mType) {
         case ShaderType::BASIC:

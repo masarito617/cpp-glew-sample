@@ -1,6 +1,5 @@
 #include "MeshComponent.h"
 #include "../Game.h"
-#include "../Commons/Shader.h"
 #include "../Commons/Texture.h"
 #include "../Commons/Mesh.h"
 #include "../Commons/VertexArray.h"
@@ -9,6 +8,7 @@
 MeshComponent::MeshComponent(class Actor *actor)
 : Component(actor)
 , mMesh(nullptr)
+, mShader(nullptr)
 {
     mActor->GetGame()->GetRenderer()->AddMeshComp(this);
 }
@@ -18,16 +18,23 @@ MeshComponent::~MeshComponent()
     mActor->GetGame()->GetRenderer()->RemoveMeshComp(this);
 }
 
-void MeshComponent::Draw(class Shader *shader)
+void MeshComponent::Draw()
 {
     if (!mMesh) return;
+    if (!mShader) return;
 
-    // シェーダにワールド座標を設定
+    // シェーダをアクティブにする
+    mShader->SetActive();
+    // ビュー射影行列、ライティングパラメータを設定
+    auto renderer = mActor->GetGame()->GetRenderer();
+    mShader->SetViewProjectionUniform(renderer->GetViewMatrix(), renderer->GetProjectionMatrix());
+    mShader->SetLightingUniform(renderer);
+    // ワールド座標を設定
     Matrix4 world = mActor->GetWorldTransform();
-    shader->SetWorldTransformUniform(world);
+    mShader->SetWorldTransformUniform(world);
 
     // テクスチャをアクティブにする
-    Texture* texture = mMesh->GetTexture();
+    auto texture = mMesh->GetTexture();
     if (texture) texture->SetActive();
 
     // 頂点座標をアクティブにする

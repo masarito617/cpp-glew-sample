@@ -4,14 +4,12 @@
 #include "../Components/SpriteComponent.h"
 #include "../Components/MeshComponent.h"
 #include "../Commons/VertexArray.h"
-#include "../Commons/Shader.h"
 #include "../Commons/Texture.h"
 #include "../Commons/Mesh.h"
 
 Renderer::Renderer(class Game *game)
 :mGame(game)
 ,mWindow(nullptr)
-,mShader(nullptr)
 ,mAmbientLight(Math::VEC3_ZERO)
 ,mDirLightDirection(Math::VEC3_ZERO)
 ,mDirLightDiffuseColor(Math::VEC3_ZERO)
@@ -77,30 +75,19 @@ bool Renderer::InitSDL()
 
 bool Renderer::LoadData()
 {
-    // TODO メッシュごとにシェーダを持つようにする
-    // シェーダを読み込む
-    mShader = new Shader(Shader::ShaderType::BASIC);
-    if (!mShader->Load(mGame))
-    {
-        return false;
-    }
-    mShader->SetActive();
-
-    // ビュー射影座標を設定(View*Projectionの逆算)
+    // ビュー射影座標を設定
     mViewMatrix = Matrix4::CreateLookAt(Math::VEC3_ZERO, Math::VEC3_UNIT_Z, Math::VEC3_UNIT_Y); // カメラ無しの初期値
     mProjectionMatrix = Matrix4::CreatePerspectiveFOV(Math::ToRadians(50.0f),
                                                       mGame->ScreenWidth, mGame->ScreenHeight,
                                                       25.0f, 10000.0f);
-    mShader->SetViewProjectionUniform(mViewMatrix, mProjectionMatrix);
-
     // カメラ作成
     mCamera = new Camera(mGame);
-    mCamera->SetPosition(Vector3(0.0f, 0.0f, -450.0f));
+    mCamera->SetPosition(Vector3(0.0f, 0.0f, -700.0f));
 
     // ライティングパラメータ設定
     mAmbientLight = Vector3(0.35f, 0.35f, 0.35f);
     mDirLightDirection = Vector3(0.3f, 0.3f, 0.8f);
-    mDirLightDiffuseColor = Vector3(0.78f, 0.88f, 1.0f);
+    mDirLightDiffuseColor = Vector3(0.8f, 0.9f, 1.0f);
     mDirLightSpecColor = Vector3(0.8f, 0.8f, 0.8f);
     mSpecPower = 300.0f;
 
@@ -113,28 +100,20 @@ void Renderer::Draw()
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // TODO メッシュごとにシェーダを持つようにする
-    // シェーダをアクティブにする
-    mShader->SetActive();
-    // カメラオブジェクトで変更されたビュー射影行列を再設定
-    mShader->SetViewProjectionUniform(mViewMatrix, mProjectionMatrix);
-    // ライティングパラメータを設定
-    mShader->SetLightingUniform(this);
-
+    // メッシュ描画
     // Zバッファ有効、アルファブレンド無効
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
-    // メッシュ描画
     for (auto meshComp : mMeshComps)
     {
-        meshComp->Draw(mShader);
+        meshComp->Draw();
     }
 
+    // TODO スプライト描画
     // Zバッファ無効、アルファブレンド有効
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    // TODO スプライト描画
     //    for (auto sprite : mSprites)
     //    {
     //        sprite->Draw(mShader);
@@ -163,9 +142,13 @@ void Renderer::ShutDown()
     }
     mCachedMeshes.clear();
 
-    // シェーダの破棄
-    mShader->Unload();
-    delete mShader;
+    // シェーダを破棄
+    for (auto i : mCachedShaders)
+    {
+        i.second->Unload();
+        delete i.second;
+    }
+    mCachedShaders.clear();
 
     // SDL関連の変数を破棄
     SDL_GL_DeleteContext(mContext);
@@ -245,4 +228,26 @@ Mesh* Renderer::GetMesh(const std::string &filePath)
         mesh = nullptr;
     }
     return mesh;
+}
+
+// シェーダロード処理
+Shader* Renderer::GetShader(const Shader::ShaderType type)
+{
+    // キャッシュ済なら返却
+    auto iter = mCachedShaders.find(type);
+    if (iter != mCachedShaders.end()) return iter->second;
+
+    Shader* shader = nullptr;
+    shader = new Shader(type);
+    if (shader->Load(mGame))
+    {
+        shader->SetViewProjectionUniform(mViewMatrix, mProjectionMatrix);
+        mCachedShaders.emplace(type, shader);
+    }
+    else
+    {
+        delete shader;
+        shader = nullptr;
+    }
+    return shader;
 }
