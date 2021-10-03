@@ -16,7 +16,7 @@ public:
         PHONG,  // テクスチャ+フォン反射
     };
 
-    Shader(const ShaderType type);
+    Shader(const ShaderType type, float specPower = 300.0f);
     ~Shader();
 
     bool Load(class Game* game);
@@ -66,4 +66,7 @@ private:
     GLuint mVertexShader;
     GLuint mFragShader;
     GLuint mShaderProgram;
+
+    // ライティングパラメータ
+    float mSpecPower; // 鏡面反射指数 a
 };

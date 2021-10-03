@@ -89,7 +89,6 @@ bool Renderer::LoadData()
     mDirLightDirection = Vector3(0.3f, 0.3f, 0.8f);
     mDirLightDiffuseColor = Vector3(0.8f, 0.9f, 1.0f);
     mDirLightSpecColor = Vector3(0.8f, 0.8f, 0.8f);
-    mSpecPower = 300.0f;
 
     return true;
 }

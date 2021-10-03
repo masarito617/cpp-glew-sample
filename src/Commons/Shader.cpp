@@ -5,11 +5,12 @@
 #include "../Game.h"
 #include "../Actors/Camera.h"
 
-Shader::Shader(const ShaderType type)
+Shader::Shader(const ShaderType type, float specPower)
 :mType(type)
 ,mShaderProgram(0)
 ,mVertexShader(0)
 ,mFragShader(0)
+,mSpecPower(specPower)
 {}
 
 Shader::~Shader()
@@ -168,7 +169,7 @@ void Shader::SetLightingUniform(const Renderer* renderer)
             SetVectorUniform(UNIFORM_DIR_LIGHT_DIRECTION, renderer->GetDirLightDirection());
             SetVectorUniform(UNIFORM_DIR_LIGHT_DIFFUSE_COLOR, renderer->GetDirLightDiffuseColor());
             SetVectorUniform(UNIFORM_DIR_LIGHT_SPEC_COLOR, renderer->GetDirLightSpecColor());
-            SetFloatUniform(UNIFORM_SPEC_POWER, renderer->GetSpecPower());
+            SetFloatUniform(UNIFORM_SPEC_POWER, mSpecPower);
             break;
     }
 }
