@@ -21,7 +21,6 @@ SpriteComponent::~SpriteComponent()
 
 void SpriteComponent::Draw(Shader* shader)
 {
-    // テクスチャが読み込まれてなければ描画しない
     if (!mTexture) return;
 
     // テクスチャサイズを考慮したワールド変換座標を設定

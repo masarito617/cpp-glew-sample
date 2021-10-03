@@ -27,10 +27,9 @@ public:
     std::string GetFragFileName() const;
 
     // uniformへの設定処理
-    void SetWorldTransformUniform(const class Matrix4& would);      // ワールド座標
-    void SetViewProjectionUniform(const class Matrix4& view,
-                                  const class Matrix4& projection); // クリップ座標
-    void SetLightingUniform(const class Renderer* renderer);        // ライティング関連
+    void SetWorldTransformUniform(const class Matrix4& would);          // ワールド座標
+    void SetViewProjectionUniform(const class Matrix4& viewProjection); // クリップ座標
+    void SetLightingUniform(const class Renderer* renderer);            // ライティング関連
 
     // uniform名
     const char* UNIFORM_VIEW_PROJECTION_NAME = "uViewProjection";

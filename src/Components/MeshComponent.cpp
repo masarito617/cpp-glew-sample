@@ -27,7 +27,7 @@ void MeshComponent::Draw()
     mShader->SetActive();
     // ビュー射影行列、ライティングパラメータを設定
     auto renderer = mActor->GetGame()->GetRenderer();
-    mShader->SetViewProjectionUniform(renderer->GetViewMatrix(), renderer->GetProjectionMatrix());
+    mShader->SetViewProjectionUniform(renderer->GetProjectionMatrix() * renderer->GetViewMatrix());
     mShader->SetLightingUniform(renderer);
     // ワールド座標を設定
     Matrix4 world = mActor->GetWorldTransform();

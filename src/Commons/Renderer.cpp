@@ -14,6 +14,8 @@ Renderer::Renderer(class Game *game)
 ,mDirLightDirection(Math::VEC3_ZERO)
 ,mDirLightDiffuseColor(Math::VEC3_ZERO)
 ,mDirLightSpecColor(Math::VEC3_ZERO)
+,m2DSpriteShader(nullptr)
+,m2DSpriteVertexArray(nullptr)
 {}
 
 Renderer::~Renderer()
@@ -90,6 +92,27 @@ bool Renderer::LoadData()
     mDirLightDiffuseColor = Vector3(0.8f, 0.9f, 1.0f);
     mDirLightSpecColor = Vector3(0.8f, 0.8f, 0.8f);
 
+    // 2DSprite用シェーダ作成
+    m2DSpriteShader = new Shader(Shader::ShaderType::SPRITE);
+    if (!m2DSpriteShader->Load(mGame))
+    {
+        return false;
+    }
+    m2DSpriteShader->SetViewProjectionUniform(Matrix4::CreateSimpleViewProjection(mGame->ScreenWidth, mGame->ScreenHeight));
+
+    // 2DSprite用頂点クラス作成（三角ポリゴン＊２）
+    float vertices[] = {
+            -0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, // top left
+             0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top right
+             0.5f,-0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, // bottom right
+            -0.5f,-0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f  // bottom left
+    };
+    unsigned int indices[] = {
+            0, 1, 2,
+            2, 3, 0
+    };
+    m2DSpriteVertexArray = new VertexArray(vertices, 4, indices, 6);
+
     return true;
 }
 
@@ -99,24 +122,30 @@ void Renderer::Draw()
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // メッシュ描画
     // Zバッファ有効、アルファブレンド無効
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_BLEND);
+
+    // メッシュ描画
     for (auto meshComp : mMeshComps)
     {
         meshComp->Draw();
     }
 
-    // TODO スプライト描画
     // Zバッファ無効、アルファブレンド有効
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    //    for (auto sprite : mSprites)
-    //    {
-    //        sprite->Draw(mShader);
-    //    }
+//    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
+//    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
+
+    // スプライト描画
+    m2DSpriteShader->SetActive();
+    m2DSpriteVertexArray->SetActive();
+    for (auto sprite : mSpriteComps)
+    {
+        sprite->Draw(m2DSpriteShader);
+    }
 
     // バックバッファとスワップ(ダブルバッファ)
     SDL_GL_SwapWindow(mWindow);
@@ -148,6 +177,11 @@ void Renderer::ShutDown()
         delete i.second;
     }
     mCachedShaders.clear();
+
+    // 2DSprite用クラスを破棄
+    m2DSpriteShader->Unload();
+    delete m2DSpriteShader;
+    delete m2DSpriteVertexArray;
 
     // SDL関連の変数を破棄
     SDL_GL_DeleteContext(mContext);
@@ -240,7 +274,8 @@ Shader* Renderer::GetShader(const Shader::ShaderType type)
     shader = new Shader(type);
     if (shader->Load(mGame))
     {
-        shader->SetViewProjectionUniform(mViewMatrix, mProjectionMatrix);
+        // ViewProjection座標の設定
+        shader->SetViewProjectionUniform(mProjectionMatrix * mViewMatrix);
         mCachedShaders.emplace(type, shader);
     }
     else

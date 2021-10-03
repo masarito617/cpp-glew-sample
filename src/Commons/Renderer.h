@@ -40,6 +40,10 @@ private:
     Vector3 mDirLightDiffuseColor; // 平行光源 拡散反射色 kd
     Vector3 mDirLightSpecColor;    // 平行光源 鏡面反射色 ks
 
+    // 2DSprite用クラス
+    class Shader* m2DSpriteShader;           // シェーダ
+    class VertexArray* m2DSpriteVertexArray; // 頂点クラス
+
     std::vector<class SpriteComponent*> mSpriteComps; // アクタのスプライトリスト
     std::vector<class MeshComponent*> mMeshComps;     // アクタのメッシュリスト
     std::unordered_map<std::string, class Texture*> mCachedTextures; // キャッシュ済テクスチャリスト

@@ -150,9 +150,9 @@ void Shader::SetWorldTransformUniform(const Matrix4& would)
 }
 
 // クリップ座標uniform設定
-void Shader::SetViewProjectionUniform(const Matrix4& view, const Matrix4& projection)
+void Shader::SetViewProjectionUniform(const Matrix4& viewProjection)
 {
-    SetMatrixUniform(UNIFORM_VIEW_PROJECTION_NAME, projection * view); // view*projectionの逆算
+    SetMatrixUniform(UNIFORM_VIEW_PROJECTION_NAME, viewProjection);
 }
 
 // ライティングuniform設定

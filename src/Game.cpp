@@ -4,6 +4,7 @@
 #include "Actors/Actor.h"
 #include "Actors/Saikoro.h"
 #include "Commons/Renderer.h"
+#include "Components/SpriteComponent.h"
 
 Game::Game()
 :mTicksCount(0)
@@ -55,6 +56,11 @@ bool Game::LoadData()
     auto* saikoro3 = new Saikoro(this, Shader::ShaderType::BASIC);
     saikoro3->SetPosition(Vector3(-200.0f, 0.0f, 0.0f));
     saikoro3->SetScale(Vector3(50.0f, 50.0f, 50.0f));
+
+    // UI作成
+    auto* ui1 = new Actor(this);
+    auto* sc = new SpriteComponent(ui1, 10);
+    sc->SetTexture(mRenderer->GetTexture(AssetsPath + "msg_start.png"));
 
     return true;
 }
