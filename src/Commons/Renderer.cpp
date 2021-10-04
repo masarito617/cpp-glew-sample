@@ -98,7 +98,6 @@ bool Renderer::LoadData()
     {
         return false;
     }
-    m2DSpriteShader->SetViewProjectionUniform(Matrix4::CreateSimpleViewProjection(mGame->ScreenWidth, mGame->ScreenHeight));
 
     // 2DSprite用頂点クラス作成（三角ポリゴン＊２）
     float vertices[] = {
@@ -112,6 +111,9 @@ bool Renderer::LoadData()
             2, 3, 0
     };
     m2DSpriteVertexArray = new VertexArray(vertices, 4, indices, 6);
+
+    // 2DSprite用ビュー行列取得
+    m2DViewProjection = Matrix4::CreateSimpleViewProjection(mGame->ScreenWidth, mGame->ScreenHeight);
 
     return true;
 }
@@ -136,11 +138,10 @@ void Renderer::Draw()
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//    glBlendEquationSeparate(GL_FUNC_ADD, GL_FUNC_ADD);
-//    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ZERO);
 
     // スプライト描画
     m2DSpriteShader->SetActive();
+    m2DSpriteShader->SetViewProjectionUniform(m2DViewProjection);
     m2DSpriteVertexArray->SetActive();
     for (auto sprite : mSpriteComps)
     {

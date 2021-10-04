@@ -59,7 +59,9 @@ bool Game::LoadData()
 
     // UI作成
     auto* ui1 = new Actor(this);
-    auto* sc = new SpriteComponent(ui1, 10);
+    ui1->SetPosition(Vector3(250.0f, 300.0f, 0.0f));
+    ui1->SetScale(Vector3(0.8f, 0.8f, 0.0f));
+    auto* sc = new SpriteComponent(ui1);
     sc->SetTexture(mRenderer->GetTexture(AssetsPath + "msg_start.png"));
 
     return true;

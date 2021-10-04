@@ -43,6 +43,7 @@ private:
     // 2DSprite用クラス
     class Shader* m2DSpriteShader;           // シェーダ
     class VertexArray* m2DSpriteVertexArray; // 頂点クラス
+    Matrix4 m2DViewProjection;               // 2D用View変換行列
 
     std::vector<class SpriteComponent*> mSpriteComps; // アクタのスプライトリスト
     std::vector<class MeshComponent*> mMeshComps;     // アクタのメッシュリスト
