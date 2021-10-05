@@ -411,7 +411,22 @@ public:
         return Matrix4(temp);
     }
 
-    // Perspective射影行列
+    // 正射影行列
+    // near、far：近接、遠方の見える範囲
+    static Matrix4 CreateOrtho(float width, float height,
+                               float near, float far)
+    {
+        float temp[4][4] =
+        {
+            { 2.0f/width, 0.0f,        0.0f, 0.0f },
+            { 0.0f,       2.0f/height, 0.0f, 0.0f },
+            { 0.0f,       0.0f,        1.0f/(far-near), near/(near-far) },
+            { 0.0f,       0.0f,        0.0f, 1.0f },
+        };
+        return Matrix4(temp);
+    }
+
+    // 透視射影行列
     // fov：縦方向に画面に入る範囲（垂直画角）
     // near、far：近接、遠方の見える範囲
     static Matrix4 CreatePerspectiveFOV(float fov, float width, float height,
