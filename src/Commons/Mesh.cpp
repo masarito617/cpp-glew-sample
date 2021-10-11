@@ -111,8 +111,7 @@ bool Mesh::Load(const std::string &filePath, Game* game)
             if (vertex.size() == 3)
             {
                 // 法線座標とUV座標が未設定の場合、頂点情報に付与して設定
-                std::vector<float> vertexInfo;
-                SetVertexInfo(&vertexInfo, vertex, normalVec4, uvVec2);
+                std::vector<float> vertexInfo = CreateVertexInfo(vertex, normalVec4, uvVec2);
                 vertexList[vertexIndex] = vertexInfo;
             }
             else if (!IsEqualNormalUV(vertex, normalVec4, uvVec2))
@@ -120,8 +119,8 @@ bool Mesh::Load(const std::string &filePath, Game* game)
                 // ＊同一頂点インデックスの中で法線座標かUV座標が異なる場合、
                 // 新たな頂点インデックスとして作成する
 
-                // 頂点インデックスとして作成済かどうか？
-                bool isVertexInfoCreated = false;
+                // 新たな頂点インデックスとして作成済かどうか？
+                bool isNewVertexCreated = false;
                 for (int i = 0; i < newVertexIndexList.size(); i++)
                 {
                     int oldIndex = newVertexIndexList[i][0];
@@ -129,17 +128,16 @@ bool Mesh::Load(const std::string &filePath, Game* game)
                     if (oldIndex == vertexIndex
                         && IsEqualNormalUV(vertexList[newIndex], normalVec4, uvVec2))
                     {
-                        isVertexInfoCreated = true;
+                        isNewVertexCreated = true;
                         vertexIndex = newIndex;
                         break;
                     }
                 }
                 // 作成済でない場合
-                if (!isVertexInfoCreated)
+                if (!isNewVertexCreated)
                 {
                     // 新たな頂点インデックスとして作成
-                    std::vector<float> vertexInfo;
-                    SetVertexInfo(&vertexInfo, vertex, normalVec4, uvVec2);
+                    std::vector<float> vertexInfo = CreateVertexInfo(vertex, normalVec4, uvVec2);
                     vertexList.push_back(vertexInfo);
                     // 作成したインデックス情報を設定
                     int newIndex = vertexList.size() - 1;
@@ -217,21 +215,23 @@ bool Mesh::Load(const std::string &filePath, Game* game)
     return true;
 }
 
-// vertexInfo設定処理
-void Mesh::SetVertexInfo(std::vector<float>* vertexInfo, const std::vector<float>& vertex, const FbxVector4& normalVec4,
+// 頂点情報作成処理
+std::vector<float> Mesh::CreateVertexInfo(const std::vector<float>& vertex, const FbxVector4& normalVec4,
                          const FbxVector2& uvVec2)
 {
+    std::vector<float> vertexInfo;
     // 位置座標
-    vertexInfo->push_back(vertex[0]);
-    vertexInfo->push_back(vertex[1]);
-    vertexInfo->push_back(vertex[2]);
+    vertexInfo.push_back(vertex[0]);
+    vertexInfo.push_back(vertex[1]);
+    vertexInfo.push_back(vertex[2]);
     // 法線座標
-    vertexInfo->push_back(normalVec4[0]);
-    vertexInfo->push_back(normalVec4[1]);
-    vertexInfo->push_back(normalVec4[2]);
+    vertexInfo.push_back(normalVec4[0]);
+    vertexInfo.push_back(normalVec4[1]);
+    vertexInfo.push_back(normalVec4[2]);
     // UV座標
-    vertexInfo->push_back(uvVec2[0]);
-    vertexInfo->push_back(uvVec2[1]);
+    vertexInfo.push_back(uvVec2[0]);
+    vertexInfo.push_back(uvVec2[1]);
+    return vertexInfo;
 }
 
 // vertexInfoに法線、UV座標が設定済かどうか？
