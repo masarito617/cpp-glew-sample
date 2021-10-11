@@ -22,5 +22,4 @@ void main() {
     fragTexCoord = inTexCoord;
     // ワールド座標に変換する
     fragNormal = (uWorldTransform * vec4(inNormal, 0.0f)).xyz;
-    fragWorldPos = (uWorldTransform * pos).xyz;
 }

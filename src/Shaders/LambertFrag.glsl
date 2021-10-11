@@ -13,7 +13,6 @@ uniform DirectionalLight uDirLight;
 
 in vec2 fragTexCoord; // 位置座標
 in vec3 fragNormal;   // 法線座標
-in vec3 fragWorldPos; // ワールド座標
 
 out vec4 outColor;
 
