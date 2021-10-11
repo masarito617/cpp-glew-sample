@@ -45,17 +45,21 @@ bool Game::LoadData()
     if (!mRenderer->LoadData()) return false;
 
     // サイコロ作成
-    auto* saikoro = new Saikoro(this, Shader::ShaderType::PHONG);
-    saikoro->SetPosition(Vector3(0.0f, 0.0f, 0.0f));
+    auto* saikoro = new Saikoro(this, Shader::ShaderType::BASIC);
+    saikoro->SetPosition(Vector3(-120.0f, 100.0f, 0.0f));
     saikoro->SetScale(Vector3(50.0f, 50.0f, 50.0f));
 
     auto* saikoro2 = new Saikoro(this, Shader::ShaderType::SPRITE);
-    saikoro2->SetPosition(Vector3(200.0f, 0.0f, 0.0f));
+    saikoro2->SetPosition(Vector3(120.0f, 100.0f, 0.0f));
     saikoro2->SetScale(Vector3(50.0f, 50.0f, 50.0f));
 
-    auto* saikoro3 = new Saikoro(this, Shader::ShaderType::BASIC);
-    saikoro3->SetPosition(Vector3(-200.0f, 0.0f, 0.0f));
+    auto* saikoro3 = new Saikoro(this, Shader::ShaderType::LAMBERT);
+    saikoro3->SetPosition(Vector3(-120.0f, -100.0f, 0.0f));
     saikoro3->SetScale(Vector3(50.0f, 50.0f, 50.0f));
+
+    auto* saikoro4 = new Saikoro(this, Shader::ShaderType::PHONG);
+    saikoro4->SetPosition(Vector3(120.0f, -100.0f, 0.0f));
+    saikoro4->SetScale(Vector3(50.0f, 50.0f, 50.0f));
 
     // UI作成
     auto* ui1 = new Actor(this);

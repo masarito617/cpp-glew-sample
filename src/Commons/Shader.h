@@ -11,12 +11,13 @@ public:
     // シェーダタイプ
     enum ShaderType
     {
-        BASIC,  // テクスチャ無し（青色）
-        SPRITE, // テクスチャ有り
-        PHONG,  // テクスチャ+フォン反射
+        BASIC,   // テクスチャ無し（青色）
+        SPRITE,  // テクスチャ有り
+        LAMBERT, // ランバート反射モデル
+        PHONG,   // フォン反射モデル
     };
 
-    Shader(const ShaderType type, float specPower = 300.0f);
+    Shader(const ShaderType type, float specPower = 10.0f);
     ~Shader();
 
     bool Load(class Game* game);

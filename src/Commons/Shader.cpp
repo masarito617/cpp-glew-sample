@@ -119,6 +119,9 @@ std::string Shader::GetVertFileName() const
         case ShaderType::SPRITE:
             fileName = "SpriteVert.glsl";
             break;
+        case ShaderType::LAMBERT:
+            fileName = "LambertVert.glsl";
+            break;
         case ShaderType::PHONG:
             fileName = "PhongVert.glsl";
             break;
@@ -135,6 +138,9 @@ std::string Shader::GetFragFileName() const
             break;
         case ShaderType::SPRITE:
             fileName = "SpriteFrag.glsl";
+            break;
+        case ShaderType::LAMBERT:
+            fileName = "LambertFrag.glsl";
             break;
         case ShaderType::PHONG:
             fileName = "PhongFrag.glsl";
@@ -162,6 +168,11 @@ void Shader::SetLightingUniform(const Renderer* renderer)
         case ShaderType::BASIC:
         case ShaderType::SPRITE:
             // 設定しない
+            break;
+        case ShaderType::LAMBERT:
+            SetVectorUniform(UNIFORM_AMBIENT_COLOR, renderer->GetAmbientLight());
+            SetVectorUniform(UNIFORM_DIR_LIGHT_DIRECTION, renderer->GetDirLightDirection());
+            SetVectorUniform(UNIFORM_DIR_LIGHT_DIFFUSE_COLOR, renderer->GetDirLightDiffuseColor());
             break;
         case ShaderType::PHONG:
             SetVectorUniform(UNIFORM_CAMERA_POS, renderer->GetCamera()->GetPosition());
