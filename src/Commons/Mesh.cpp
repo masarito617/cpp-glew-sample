@@ -1,5 +1,4 @@
 #include "Mesh.h"
-#include <fbxsdk.h>
 #include <SDL.h>
 #include <iostream>
 #include <vector>
@@ -111,56 +110,37 @@ bool Mesh::Load(const std::string &filePath, Game* game)
 
             if (vertex.size() == 3)
             {
-                // 法線座標とUV座標が未設定の場合、設定する
-                vertex.push_back(normalVec4[0]);
-                vertex.push_back(normalVec4[1]);
-                vertex.push_back(normalVec4[2]);
-                vertex.push_back(uvVec2[0]);
-                vertex.push_back(uvVec2[1]);
-                vertexList[vertexIndex] = vertex;
+                // 法線座標とUV座標が未設定の場合、頂点情報に付与して設定
+                std::vector<float> vertexInfo;
+                SetVertexInfo(&vertexInfo, vertex, normalVec4, uvVec2);
+                vertexList[vertexIndex] = vertexInfo;
             }
-            else if (fabs(vertex[3] - normalVec4[0]) >= FLT_EPSILON
-                     || fabs(vertex[4] - normalVec4[1]) >= FLT_EPSILON
-                     || fabs(vertex[5] - normalVec4[2]) >= FLT_EPSILON
-                     || fabs(vertex[6] - uvVec2[0]) >= FLT_EPSILON
-                     || fabs(vertex[7] - uvVec2[1]) >= FLT_EPSILON)
+            else if (!IsEqualNormalUV(vertex, normalVec4, uvVec2))
             {
                 // ＊同一頂点インデックスの中で法線座標かUV座標が異なる場合、
                 // 新たな頂点インデックスとして作成する
 
-                // 作成済かどうか？
-                bool isCreated = false;
+                // 頂点インデックスとして作成済かどうか？
+                bool isVertexInfoCreated = false;
                 for (int i = 0; i < newVertexIndexList.size(); i++)
                 {
-                    auto indexInfo = newVertexIndexList[i];
-                    int oldIndex = indexInfo[0];
-                    int newIndex = indexInfo[1];
+                    int oldIndex = newVertexIndexList[i][0];
+                    int newIndex = newVertexIndexList[i][1];
                     if (oldIndex == vertexIndex
-                    && fabs(vertexList[newIndex][3] - normalVec4[0]) < FLT_EPSILON
-                    && fabs(vertexList[newIndex][4] - normalVec4[1]) < FLT_EPSILON
-                    && fabs(vertexList[newIndex][5] - normalVec4[2]) < FLT_EPSILON
-                    && fabs(vertexList[newIndex][6] - uvVec2[0]) < FLT_EPSILON
-                    && fabs(vertexList[newIndex][7] - uvVec2[1]) < FLT_EPSILON)
+                        && IsEqualNormalUV(vertexList[newIndex], normalVec4, uvVec2))
                     {
-                        isCreated = true;
+                        isVertexInfoCreated = true;
                         vertexIndex = newIndex;
                         break;
                     }
                 }
                 // 作成済でない場合
-                if (!isCreated)
+                if (!isVertexInfoCreated)
                 {
                     // 新たな頂点インデックスとして作成
-                    std::vector<float> newPosVertex;
-                    newPosVertex.push_back(vertex[0]);
-                    newPosVertex.push_back(vertex[1]);
-                    newPosVertex.push_back(vertex[2]);
-                    newPosVertex.push_back(normalVec4[0]);
-                    newPosVertex.push_back(normalVec4[1]);
-                    newPosVertex.push_back(normalVec4[2]);
-                    newPosVertex.push_back(uvVec2[0]);
-                    newPosVertex.push_back(uvVec2[1]);
-                    vertexList.push_back(newPosVertex);
+                    std::vector<float> vertexInfo;
+                    SetVertexInfo(&vertexInfo, vertex, normalVec4, uvVec2);
+                    vertexList.push_back(vertexInfo);
                     // 作成したインデックス情報を設定
                     int newIndex = vertexList.size() - 1;
                     std::vector<int> newVertexIndex;
@@ -235,6 +215,34 @@ bool Mesh::Load(const std::string &filePath, Game* game)
     manager->Destroy();
 
     return true;
+}
+
+// vertexInfo設定処理
+void Mesh::SetVertexInfo(std::vector<float>* vertexInfo, const std::vector<float>& vertex, const FbxVector4& normalVec4,
+                         const FbxVector2& uvVec2)
+{
+    // 位置座標
+    vertexInfo->push_back(vertex[0]);
+    vertexInfo->push_back(vertex[1]);
+    vertexInfo->push_back(vertex[2]);
+    // 法線座標
+    vertexInfo->push_back(normalVec4[0]);
+    vertexInfo->push_back(normalVec4[1]);
+    vertexInfo->push_back(normalVec4[2]);
+    // UV座標
+    vertexInfo->push_back(uvVec2[0]);
+    vertexInfo->push_back(uvVec2[1]);
+}
+
+// vertexInfoに法線、UV座標が設定済かどうか？
+bool Mesh::IsEqualNormalUV(const std::vector<float> vertexInfo,
+                           const FbxVector4 &normalVec4, const FbxVector2 &uvVec2)
+{
+    return fabs(vertexInfo[3] - normalVec4[0]) < FLT_EPSILON
+            && fabs(vertexInfo[4] - normalVec4[1]) < FLT_EPSILON
+            && fabs(vertexInfo[5] - normalVec4[2]) < FLT_EPSILON
+            && fabs(vertexInfo[6] - uvVec2[0]) < FLT_EPSILON
+            && fabs(vertexInfo[7] - uvVec2[1]) < FLT_EPSILON;
 }
 
 void Mesh::Unload()

@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <fbxsdk.h>
 
 // モデルクラス
 class Mesh {
@@ -20,6 +21,12 @@ private:
 
     std::string mShaderName; // シェーダ名
     float mRadius;           // 境界球の半径（原点から最も遠い点までの距離）
+
+    // 頂点情報の編集で使用
+    void SetVertexInfo(std::vector<float>* vertexInfo, const std::vector<float>& vertex,
+                       const FbxVector4& normalVec4, const FbxVector2& uvVec2);
+    bool IsEqualNormalUV(const std::vector<float> vertexInfo,
+                         const FbxVector4& normalVec4, const FbxVector2& uvVec2);
 
 public:
     class VertexArray* GetVertexArray() { return mVertexArray; }
