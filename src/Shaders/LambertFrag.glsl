@@ -28,7 +28,7 @@ void main() {
     float NdotL = dot(N, L);
     if (NdotL > 0)
     {
-        // 拡散反射色、鏡面反射色を加える
+        // 拡散反射色を加える
         vec3 Diffuse = uDirLight.mDiffuseColor * NdotL; // kd * N・L
         Lambert += Diffuse;
     }
