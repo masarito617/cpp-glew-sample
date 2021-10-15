@@ -8,7 +8,6 @@
 Mesh::Mesh()
 :mVertexArray(nullptr)
 ,mTexture(nullptr)
-,mRadius(0.0f)
 {}
 
 Mesh::~Mesh()
