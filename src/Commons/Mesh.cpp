@@ -153,23 +153,6 @@ bool Mesh::Load(const std::string &filePath, Game* game)
         }
     }
 
-    // TODO ログ出力
-    std::cout << "-Vertex old, new" << std::endl;
-    for (auto newVertexIndex : newVertexIndexList)
-    {
-        std::cout << newVertexIndex[0] << ", " << newVertexIndex[1] << std::endl;
-    }
-    std::cout << std::endl;
-    std::cout << "-Index" << std::endl;
-    int tmp = 0;
-    for (auto index : vertexIndexList)
-    {
-        std::cout << index << ", ";
-        if (tmp % 3 == 2) std::cout << std::endl;
-        tmp++;
-    }
-    std::cout << std::endl;
-
     // 頂点座標配列の作成
     int vertexCount = vertexList.size();
     float vertices[vertexList.size() * 8];
@@ -187,13 +170,6 @@ bool Mesh::Load(const std::string &filePath, Game* game)
         // UV座標
         vertices[i*8+6] = vertex[6];
         vertices[i*8+7] = -vertex[7]; // V座標は反転させる
-
-        // TODO ログ出力
-        for (int j = 0; j < 8; j++)
-        {
-            std::cout << vertices[i*8+j] << ", ";
-        }
-        std::cout << std::endl;
     }
 
     // インデックスバッファ配列の作成
