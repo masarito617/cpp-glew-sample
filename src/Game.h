@@ -37,12 +37,13 @@ private:
     bool mIsRunning;      // 実行中か否か？
     bool mUpdatingActors; // アクタ更新中か否か？
     
-    // Assetsパス
-    const std::string AssetsPath = "../Assets/"; // Mac + CLion
-    //const std::string AssetsPath = "Assets\\"; // Win + VisualStudio
+    // Mac + CLion環境での相対パス
+    const std::string AssetsPath = "../Assets/";      // Assetsパス
+    const std::string ShaderPath = "../src/Shaders/"; // シェーダーパス
 
-    // シェーダーパス
-    const std::string ShaderPath = "../src/Shaders/"; // Mac + CLion
+    // Win + VisualStudio環境での相対パス
+    //const std::string AssetsPath = "Assets\\";       // Assetsパス
+    //const std::string ShaderPath = "src\\Shaders\\"; // シェーダーパス
 
 public:
     // getter, setter

@@ -154,8 +154,9 @@ bool Mesh::Load(const std::string &filePath, Game* game)
 
     // 頂点座標配列の作成
     int vertexCount = vertexList.size();
-    float vertices[vertexList.size() * 8];
-    for (int i = 0; i < vertexList.size(); i++)
+    float* vertices;
+    vertices = (float*) malloc(sizeof(float) * vertexCount * 8);
+    for (int i = 0; i < vertexCount; i++)
     {
         auto vertex = vertexList[i];
         // 位置座標
@@ -173,8 +174,8 @@ bool Mesh::Load(const std::string &filePath, Game* game)
 
     // インデックスバッファ配列の作成
     int indexCount = vertexIndexList.size();
-    unsigned int indices[vertexIndexList.size()];
-    for (int i = 0; i < vertexIndexList.size(); i++)
+    unsigned int* indices = (unsigned int*)malloc(sizeof(unsigned int) * indexCount);
+    for (int i = 0; i < indexCount; i++)
     {
         auto vertexIndex = vertexIndexList[i];
         indices[i] = vertexIndex; // new
